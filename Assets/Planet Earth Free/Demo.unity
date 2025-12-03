@@ -1285,7 +1285,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &879423208
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2423,15 +2423,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3340311267447010733, guid: 6b33774543b7deb4988a0676e64e21fb, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 57.27
+      value: 57.37
       objectReference: {fileID: 0}
     - target: {fileID: 3340311267447010733, guid: 6b33774543b7deb4988a0676e64e21fb, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.13
+      value: -6.18
       objectReference: {fileID: 0}
     - target: {fileID: 3340311267447010733, guid: 6b33774543b7deb4988a0676e64e21fb, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 19.96
+      value: 33.71
       objectReference: {fileID: 0}
     - target: {fileID: 3340311267447010733, guid: 6b33774543b7deb4988a0676e64e21fb, type: 3}
       propertyPath: m_LocalRotation.w
@@ -2464,8 +2464,92 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 22648899321674013, guid: 6b33774543b7deb4988a0676e64e21fb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1593169497}
+    - targetCorrespondingSourceObject: {fileID: 22648899321674013, guid: 6b33774543b7deb4988a0676e64e21fb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1593169500}
+    - targetCorrespondingSourceObject: {fileID: 22648899321674013, guid: 6b33774543b7deb4988a0676e64e21fb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1593169499}
+    - targetCorrespondingSourceObject: {fileID: 22648899321674013, guid: 6b33774543b7deb4988a0676e64e21fb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1593169498}
   m_SourcePrefab: {fileID: 100100000, guid: 6b33774543b7deb4988a0676e64e21fb, type: 3}
+--- !u!1 &1593169496 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 22648899321674013, guid: 6b33774543b7deb4988a0676e64e21fb, type: 3}
+  m_PrefabInstance: {fileID: 1593169495}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1593169497
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1593169496}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74d07e3b377ec3d48961467bba764b48, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VObject
+  displayName: 
+  objectId: fdda3e50-3e50-fdda-503e-dafd503edafd
+  contentType: 0
+  objectSyncType: 0
+  isInitialized: 1
+  isPrefab: 0
+--- !u!114 &1593169498
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1593169496}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a36550c8545a5a44e9a60c70779454d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VivenGrabbableModule
+  grabType: 0
+  parentToHandOnGrab: 1
+  grabPoints: []
+  holdTimeThreshold: 1
+  throwForce: 5
+  attachPoints: []
+  excludeLayerObjects: []
+--- !u!114 &1593169499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1593169496}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc0189e007fc4894797f7a073ab34d26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VivenRigidbodyControlModule
+  physicsType: 0
+  originMass: 1
+  originDrag: 0
+  originAngularDrag: 0.05
+  automaticCenterOfMass: 1
+  originCom: {x: 0, y: 0, z: 0}
+--- !u!114 &1593169500
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1593169496}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc68f482c570738488e474aea83038f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VivenGrabbableRigidView
 --- !u!1 &1621103891
 GameObject:
   m_ObjectHideFlags: 0
@@ -3440,8 +3524,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 134.09639, y: -67}
-  m_SizeDelta: {x: 206.7213, y: 95.7444}
+  m_AnchoredPosition: {x: 138.05026, y: -69.52767}
+  m_SizeDelta: {x: 208.8218, y: 100.9957}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2054169007
 MonoBehaviour:
@@ -3653,8 +3737,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 369, y: 53}
-  m_SizeDelta: {x: 662.3197, y: 59.2769}
+  m_AnchoredPosition: {x: 317.50635, y: 53}
+  m_SizeDelta: {x: 555.0295, y: 59.2769}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2090763260
 MonoBehaviour:
