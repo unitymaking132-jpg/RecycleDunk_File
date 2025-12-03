@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -702,8 +703,22 @@ namespace TwentyOz.VivenSDK.Scripts.Editor.Build
                 return BuildResultData.Fail("TestOnViven", "Catalog.json 파일이 생성되지 않았습니다.");
             }
 
+            //Trigger파일 생성
+            SetupReloadTrigger();
+
             return BuildResultData.Success("TestOnViven", "Local Build Success");
         }
+
+
+        /// <summary>
+        /// Vmap이 새로 로딩 되었을때를 알려주는 TimeStamp파일을 생성함.
+        /// </summary>
+        private static void SetupReloadTrigger()
+        {
+            var triggerFilePath = Path.Combine(TestOnVivenPath, "reload_trigger.txt");
+            File.WriteAllText(triggerFilePath, DateTime.Now.ToString(CultureInfo.CurrentCulture));
+        }
+        
 
     #endregion
 

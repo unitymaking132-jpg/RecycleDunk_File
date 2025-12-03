@@ -13,6 +13,7 @@ namespace TwentyOz.VivenSDK.Scripts.Core.VivenComponents.Avatar
     {
         [SerializeField] private List<GameObject> sdkCharacterCullingObjects;
         [SerializeField] private SkinnedMeshRenderer sdkFace;
+        [SerializeField] private float sdkNameplateOffset = 0.3f;
 
         // [SerializeField] private SkinnedMeshRenderer sdkFaceMeshRenderer;
         // [SerializeField] private SkinnedMeshRenderer sdkBodyMeshRenderer;

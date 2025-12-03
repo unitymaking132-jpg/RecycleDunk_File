@@ -29,7 +29,8 @@ namespace TwentyOz.VivenSDK.Scripts.Editor.Core
                 // 일단, 비벤에서 열어서 테스트 하는 기능을 구현할 수가 없음.
                 // Local Temp Directory에 V-Map을 만들어서 실행하는 방법을 생각해보자.
                 var result =  VivenBuildManager.BuildVMapOnLocalTemp();
-                if (result.IsSuccess)
+                
+                if (result.IsSuccess && !VivenLauncher.IsVivenRunning())
                     VivenLauncher.PlayVivenLocal();
                 else
                     BuildResultWindow.ShowWindow(result);

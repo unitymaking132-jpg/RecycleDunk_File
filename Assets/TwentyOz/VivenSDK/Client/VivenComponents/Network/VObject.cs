@@ -131,8 +131,11 @@ namespace Twoz.Viven.Interactions
                 // Prefab은 GlobalObjectId가 존재하지 않음. 임의의 Guid 생성, Persistent하게 바꾸려면 AssetDatabase의 Guid로 생성 필요
                 objectId = Guid.NewGuid().ToString();
             else
-                objectId = ParseHashcodeToGuid(GlobalObjectId.GetGlobalObjectIdSlow(this).GetHashCode());
-
+            {
+                var newId = ParseHashcodeToGuid(GlobalObjectId.GetGlobalObjectIdSlow(this).GetHashCode());
+                if (!newId.Equals(Guid.Empty.ToString()))
+                    objectId = newId;
+            }
             isInitialized = true;
         }
 

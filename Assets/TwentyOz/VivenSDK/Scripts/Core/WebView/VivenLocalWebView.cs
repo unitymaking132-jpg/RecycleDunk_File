@@ -24,16 +24,47 @@ namespace TwentyOz.VivenSDK.Scripts.Core.WebView
     [AddComponentMenu("VivenSDK/Utility/Viven Local Web View")]
     public class VivenLocalWebView : MonoBehaviour
     {
+        /// <summary>
+        /// WebView의 User Agent를 모바일로 초기화할지 여부입니다.
+        /// </summary>
+        [SerializeField] private bool setUserAgentMobile;
+        
         /// <value>
         /// WebView의 초기 URL입니다.
         /// </value>
         public string url;
         
         /// <summary>
+        /// Popup URL을 사용할지 여부입니다.
+        /// </summary>
+        public bool usePopup = false;
+        
+        /// <summary>
         /// 네트워크를 통해 방에 있는 유저의 url을 설정합니다.
         /// </summary>
         /// <param name="url">설정할 url</param>
         public void SetUrl(string url)
+        {
+        }
+        
+        /// <summary>
+        /// 현재 페이지를 새로고침합니다.
+        /// </summary>
+        public void Reload()
+        {
+        }
+
+        /// <summary>
+        /// 이전 페이지로 이동합니다.
+        /// </summary>
+        public void GoBack()
+        {
+        }
+
+        /// <summary>
+        /// 다음 페이지로 이동합니다.
+        /// </summary>
+        public void GoForward()
         {
         }
     }

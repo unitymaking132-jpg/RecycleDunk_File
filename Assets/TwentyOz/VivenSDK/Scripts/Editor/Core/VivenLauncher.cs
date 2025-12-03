@@ -1,5 +1,8 @@
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Win32;
 using TwentyOz.VivenSDK.Scripts.Core.Common;
 using TwentyOz.VivenSDK.Scripts.Editor.Util;
@@ -96,6 +99,65 @@ namespace TwentyOz.VivenSDK.Scripts.Editor.Core
         }
         
         /// <summary>
+        /// Viven 프로세스가 실행 중인지 확인
+        /// </summary>
+        /// <returns>Viven 프로세스가 실행 중이면 true</returns>
+        public static bool IsVivenRunning()
+        {
+            try
+            {
+#if UNITY_EDITOR_WIN
+                // Windows: tasklist 명령어 사용
+                var processStartInfo = new ProcessStartInfo
+                {
+                    FileName = "tasklist",
+                    Arguments = "/FI \"IMAGENAME eq Viven.exe\"",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true
+                };
+                
+                using (var process = Process.Start(processStartInfo))
+                {
+                    string output = process.StandardOutput.ReadToEnd();
+                    process.WaitForExit();
+                    
+                    Debug.Log($"tasklist 결과: {output}");
+                    return output.Contains("Viven.exe");
+                }
+#elif UNITY_EDITOR_OSX
+                // macOS: ps 명령어 사용
+                var processStartInfo = new ProcessStartInfo
+                {
+                    FileName = "/bin/ps",
+                    Arguments = "ax -o comm",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true
+                };
+                
+                using (var process = Process.Start(processStartInfo))
+                {
+                    string output = process.StandardOutput.ReadToEnd();
+                    process.WaitForExit();
+                    
+                    Debug.Log($"ps 결과: {output}");
+                    return output.ToLower().Contains("viven");
+                }
+#else
+                // Linux나 다른 플랫폼에서는 Process.GetProcesses() 사용
+                var processes = Process.GetProcessesByName("Viven");
+                return processes.Length > 0;
+#endif
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"Viven 프로세스 확인 중 오류 발생: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Viven Launcher를 통해 Viven 실행
         /// </summary>
         public static void PlayVivenLocal()
@@ -110,7 +172,24 @@ namespace TwentyOz.VivenSDK.Scripts.Editor.Core
                 FileName        = vivenPath,
             };
             Debug.Log(vivenPath);
-            Process.Start(processInfo);
+            
+            //Process 처리는 비동기로 진행
+            Task.Run(() =>
+            {
+                try
+                {
+                    
+                    Process.Start(processInfo);
+                }
+                catch (System.ComponentModel.Win32Exception ex)
+                {
+                    Debug.Log($"Viven 실행이 취소되었습니다: {ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Viven 실행 중 오류 발생: {ex.Message}");
+                }
+            });
         }
 
         /// <summary>
