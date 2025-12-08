@@ -99,16 +99,18 @@ RecycleDunk (Scene)
 │   │   ├── PaperBin (파란색)
 │   │   ├── PlasticBin (빨간색)
 │   │   ├── GlassBin (초록색)
-│   │   └── MetalBin (노란색)
-│   └── SpawnPoints
-│       └── (쓰레기 스폰 위치들)
+│   │   ├── MetalBin (노란색)
+│   │   └── GeneralGarbageBin (회색/검정)
+│   └── SpawnZone (BoxCollider - 스폰 영역)
 │
 ├── --- UI ---
-│   ├── SlideUI (Canvas - World Space)
-│   ├── LandingUI (Canvas - World Space)
-│   ├── LevelSelectUI (Canvas - World Space)
-│   ├── GameHUD (Canvas - World Space)
-│   └── ResultUI (Canvas - World Space)
+│   └── MainCanvas (Canvas - World Space)
+│       ├── SlideUIPanel
+│       ├── LandingUIPanel
+│       ├── LevelSelectUIPanel
+│       ├── GameHUDPanel
+│       ├── GameOverUIPanel
+│       └── ResultUIPanel
 │
 └── --- VIVEN ---
     └── VivenSystemPrefab (VIVEN SDK 기본 프리팹)
@@ -142,9 +144,14 @@ RecycleDunk (Scene)
    - `VivenLuaBehaviour` 컴포넌트 추가
 3. **VivenLuaBehaviour 설정**:
    - `Lua Script`: `Assets/Recycle Dunk/Scripts/Manager/SpawnManager.lua`
-4. **SpawnPoints 설정**:
-   - 여러 개의 빈 GameObject를 SpawnPoints 아래에 생성
-   - 각각 플레이어 앞 적절한 위치에 배치
+4. **SpawnZone 설정**:
+   - 빈 GameObject 생성: `SpawnZone`
+   - `BoxCollider` 컴포넌트 추가
+   - `Is Trigger`: 체크
+   - 콜라이더 크기를 쓰레기 스폰 영역에 맞게 조절
+   - SpawnManager의 `SpawnZoneObject`에 연결
+
+> **참고**: 쓰레기는 BoxCollider의 bounds 내 랜덤 위치에 스폰됩니다.
 
 ### 4.3 ScoreManager 설정
 
@@ -184,18 +191,20 @@ RecycleDunk (Scene)
 5. **프리팹으로 저장**:
    - `Assets/Recycle Dunk/Prefabs/Bins/PaperBin.prefab`
 
-6. **나머지 3개도 동일하게 생성**:
+6. **나머지 4개도 동일하게 생성**:
    - PlasticBin (빨간색)
    - GlassBin (초록색)
    - MetalBin (노란색)
+   - GeneralGarbageBin (회색/검정)
 
 ### 5.2 쓰레기통 배치
 
-이미지 참고에 따라 지구 주변에 4개의 쓰레기통을 배치합니다:
-- 상단: Paper (파란색)
-- 좌측: Plastic (빨간색)
-- 하단: Glass (초록색)
-- 우측: Metal (노란색)
+지구 주변에 5개의 쓰레기통을 배치합니다:
+- Paper (파란색)
+- Plastic (빨간색)
+- Glass (초록색)
+- Metal (노란색)
+- GeneralGarbage (회색/검정)
 
 ---
 
@@ -242,16 +251,17 @@ RecycleDunk (Scene)
 | Plastic | 페트병, 플라스틱 용기, 빨대 |
 | Glass | 유리병, 유리컵, 유리 조각 |
 | Metal | 캔, 알루미늄 용기, 병뚜껑 |
+| GeneralGarbage | 음식물 묻은 용기, 복합 재질, 오염된 종이 |
 
 ---
 
 ## 7. UI 설정
 
-### 7.1 World Space Canvas 생성
+### 7.1 단일 Canvas + 다중 Panel 구조
 
-모든 UI는 World Space Canvas로 생성합니다:
+**단일 Canvas**에 **모든 UI Panel**을 배치하고, GameManager가 상태에 따라 Panel을 켜고 끄는 방식입니다.
 
-1. **Canvas 생성**: `GameObject` → `UI` → `Canvas`
+1. **MainCanvas 생성**: `GameObject` → `UI` → `Canvas`
 2. **Canvas 설정**:
    - `Render Mode`: World Space
    - `Event Camera`: XR Camera 연결
@@ -259,70 +269,147 @@ RecycleDunk (Scene)
 
 3. **VivenUIPointerEvents 추가** (VR 상호작용용)
 
-### 7.2 SlideUI 설정
+4. **Canvas 하위에 Panel들 생성**:
+   - 각 Panel에 해당 `VivenLuaBehaviour` 컴포넌트 부착
 
 ```
-SlideUI (Canvas - World Space)
-├── Background (Image)
-├── SlideContainer
+MainCanvas (Canvas - World Space)
+├── [VivenUIPointerEvents]
+│
+├── SlideUIPanel (Panel)
+│   ├── [VivenLuaBehaviour: SlideUIManager.lua]
+│   ├── Background (Image)
 │   ├── Slide1 (Image + Text)
 │   ├── Slide2 (Image + Text)
 │   ├── Slide3 (Image + Text)
-│   └── Slide4 (Image + Text)
-├── Navigation
 │   ├── PrevButton (Button)
 │   ├── NextButton (Button)
-│   └── Indicators (HorizontalLayoutGroup)
-│       ├── Dot1
-│       ├── Dot2
-│       ├── Dot3
-│       └── Dot4
-└── [VivenLuaBehaviour: SlideUIManager.lua]
-```
-
-### 7.3 LandingUI 설정
-
-```
-LandingUI (Canvas - World Space)
-├── Background (Image)
-├── Logo (Image)
-├── Buttons
+│   └── CompleteButton (Button)
+│
+├── LandingUIPanel (Panel)
+│   ├── [VivenLuaBehaviour: LandingUIManager.lua]
+│   ├── Background (Image)
+│   ├── Logo (Image)
 │   ├── HowToPlayButton (Button)
 │   └── GameStartButton (Button)
-└── [VivenLuaBehaviour: LandingUIManager.lua]
-```
-
-### 7.4 GameHUD 설정
-
-```
-GameHUD (Canvas - World Space)
-├── TimerPanel
-│   └── TimerText (TextMeshPro)
-├── HPPanel
+│
+├── LevelSelectUIPanel (Panel)
+│   ├── [VivenLuaBehaviour: LevelSelectUI.lua]
+│   ├── Background (Image)
+│   ├── EasyButton (Button)
+│   ├── HardButton (Button)
+│   ├── DescriptionText (TextMeshPro)
+│   └── BackButton (Button)
+│
+├── GameHUDPanel (Panel)
+│   ├── [VivenLuaBehaviour: GameHUD.lua]
+│   ├── TimerText (TextMeshPro)
 │   ├── HPBar (Image - Filled)
-│   └── HPText (TextMeshPro)
-└── [VivenLuaBehaviour: GameHUD.lua]
+│   ├── HPText (TextMeshPro)
+│   ├── ScoreText (TextMeshPro)
+│   └── ComboText (TextMeshPro)
+│
+├── GameOverUIPanel (Panel)
+│   ├── [VivenLuaBehaviour: GameOverUI.lua]
+│   ├── Background (Image)
+│   ├── GameOverText (TextMeshPro)
+│   └── RetryButton (Button)
+│
+└── ResultUIPanel (Panel)
+    ├── [VivenLuaBehaviour: ResultUIManager.lua]
+    ├── Background (Image)
+    ├── ScoreText (TextMeshPro)
+    ├── AccuracyText (TextMeshPro)
+    ├── MostWrongText (TextMeshPro)
+    ├── HintText (TextMeshPro)
+    └── RetryButton (Button)
 ```
 
-### 7.5 ResultUI 설정
+### 7.2 Panel 전환 원리
+
+GameManager가 `ChangeState()` 함수를 통해 Panel을 전환합니다:
+
+```lua
+-- GameManager.lua
+function ChangeState(newState)
+    HideAllUI()  -- 모든 Panel 비활성화
+
+    if newState == "Guide" then
+        ShowUI("slideUI")  -- SlideUIPanel만 활성화
+    elseif newState == "Landing" then
+        ShowUI("landingUI")  -- LandingUIPanel만 활성화
+    -- ... 기타 상태
+    end
+end
+```
+
+### 7.3 GameManager UI 의존성 주입
+
+GameManager의 인스펙터에서 각 Panel을 연결합니다:
 
 ```
-ResultUI (Canvas - World Space)
-├── Background (Image)
-├── Title (TextMeshPro - "GAME OVER")
-├── ScorePanel
-│   ├── ScoreLabel (TextMeshPro)
-│   └── ScoreValue (TextMeshPro)
-├── AccuracyPanel
-│   ├── AccuracyLabel (TextMeshPro)
-│   └── AccuracyValue (TextMeshPro)
-├── MostMissedPanel
-│   ├── MostMissedLabel (TextMeshPro)
-│   └── MostMissedValue (TextMeshPro)
-├── Buttons
-│   ├── RetryButton (Button)
-│   └── MainMenuButton (Button)
-└── [VivenLuaBehaviour: ResultUIManager.lua]
+Script Variables:
+├── SlideUIPanel: SlideUIPanel (Panel GameObject)
+├── LandingUIPanel: LandingUIPanel (Panel GameObject)
+├── LevelSelectUIPanel: LevelSelectUIPanel (Panel GameObject)
+├── GameHUDPanel: GameHUDPanel (Panel GameObject)
+├── GameOverUIPanel: GameOverUIPanel (Panel GameObject)
+└── ResultUIPanel: ResultUIPanel (Panel GameObject)
+```
+
+### 7.4 각 Panel의 VivenLuaBehaviour 의존성 주입
+
+각 Panel의 스크립트에서 자식 요소들을 연결합니다:
+
+**SlideUIPanel (SlideUIManager.lua)**:
+```
+├── Slide1: Slide1 (GameObject)
+├── Slide2: Slide2 (GameObject)
+├── Slide3: Slide3 (GameObject)
+├── Slide4: (비워두기 또는 None)
+├── Slide5: (비워두기 또는 None)
+├── PrevButton: PrevButton (GameObject)
+├── NextButton: NextButton (GameObject)
+└── CompleteButton: CompleteButton (GameObject)
+```
+
+**LandingUIPanel (LandingUIManager.lua)**:
+```
+├── HowToPlayButton: HowToPlayButton (GameObject)
+├── GameStartButton: GameStartButton (GameObject)
+└── LogoObject: Logo (GameObject, 선택)
+```
+
+**LevelSelectUIPanel (LevelSelectUI.lua)**:
+```
+├── EasyButton: EasyButton (GameObject)
+├── HardButton: HardButton (GameObject)
+├── BackButton: BackButton (GameObject, 선택)
+└── DescriptionTextObject: DescriptionText (GameObject, 선택)
+```
+
+**GameHUDPanel (GameHUD.lua)**:
+```
+├── TimerTextObject: TimerText (GameObject)
+├── HPBarObject: HPBar (GameObject)
+├── HPTextObject: HPText (GameObject, 선택)
+├── ScoreTextObject: ScoreText (GameObject, 선택)
+└── ComboTextObject: ComboText (GameObject, 선택)
+```
+
+**GameOverUIPanel (GameOverUI.lua)**:
+```
+├── RetryButton: RetryButton (GameObject)
+└── GameOverTextObject: GameOverText (GameObject, 선택)
+```
+
+**ResultUIPanel (ResultUIManager.lua)**:
+```
+├── ScoreTextObject: ScoreText (GameObject)
+├── AccuracyTextObject: AccuracyText (GameObject)
+├── MostWrongTextObject: MostWrongText (GameObject)
+├── HintTextObject: HintText (GameObject)
+└── RetryButton: RetryButton (GameObject)
 ```
 
 ---
@@ -360,6 +447,7 @@ Assets/Recycle Dunk/Scripts/UI/SlideUIManager.lua
 Assets/Recycle Dunk/Scripts/UI/LandingUIManager.lua
 Assets/Recycle Dunk/Scripts/UI/LevelSelectUI.lua
 Assets/Recycle Dunk/Scripts/UI/GameHUD.lua
+Assets/Recycle Dunk/Scripts/UI/GameOverUI.lua
 Assets/Recycle Dunk/Scripts/UI/ResultUIManager.lua
 Assets/Recycle Dunk/Scripts/Utils/EventCallback.lua
 Assets/Recycle Dunk/Scripts/Utils/Definitions.def.lua
@@ -376,15 +464,17 @@ VivenLuaBehaviour 컴포넌트의 인스펙터에서:
 예시 (GameManager.lua):
 ```
 Script Variables:
-├── SpawnManagerObject: SpawnManager (GameObject)
 ├── ScoreManagerObject: ScoreManager (GameObject)
-├── AudioManagerObject: AudioManager (GameObject)
-├── SlideUIObject: SlideUI (Canvas)
-├── LandingUIObject: LandingUI (Canvas)
-├── LevelSelectUIObject: LevelSelectUI (Canvas)
-├── GameHUDObject: GameHUD (Canvas)
-└── ResultUIObject: ResultUI (Canvas)
+├── SpawnManagerObject: SpawnManager (GameObject)
+├── SlideUIPanel: SlideUIPanel (Panel)
+├── LandingUIPanel: LandingUIPanel (Panel)
+├── LevelSelectUIPanel: LevelSelectUIPanel (Panel)
+├── GameHUDPanel: GameHUDPanel (Panel)
+├── GameOverUIPanel: GameOverUIPanel (Panel)
+└── ResultUIPanel: ResultUIPanel (Panel)
 ```
+
+> **참고**: 모든 UI Panel은 단일 MainCanvas의 자식으로 배치됩니다.
 
 ---
 
@@ -436,10 +526,38 @@ Script Variables:
 | UI 클릭 안됨 | EventCamera 미설정 | Canvas의 Event Camera 연결 |
 | 쓰레기 잡기 안됨 | VivenGrabbableModule 설정 오류 | 컴포넌트 설정 확인 |
 | 물리 동작 이상 | Rigidbody 설정 오류 | Use Gravity, Constraints 확인 |
+| UI 버튼 클릭 후 화면 전환 안됨 | GameManager GameObject 이름 불일치 | GameObject 이름이 정확히 "GameManager"인지 확인 |
 
 ### 12.2 콘솔 에러 확인
 
 Unity Console에서 `[Lua]` 또는 `Viven` 관련 에러 확인
+
+### 12.3 스크립트 간 통신 방식
+
+**중요**: 이 프로젝트에서는 EventCallback 대신 **GameObject.Find()를 통한 직접 호출 방식**을 사용합니다.
+
+```lua
+-- UI 스크립트에서 GameManager 직접 호출 예시
+function GetGameManager()
+    local gameManagerObj = CS.UnityEngine.GameObject.Find("GameManager")
+    if gameManagerObj then
+        return gameManagerObj:GetLuaComponent("GameManager")
+    end
+    Debug.Log("ERROR: GameManager not found")
+    return nil
+end
+
+function OnButtonClick()
+    local gameManager = GetGameManager()
+    if gameManager then
+        gameManager.OnGuideComplete()
+    end
+end
+```
+
+**주의사항**:
+- GameManager가 있는 GameObject의 이름은 반드시 **"GameManager"**여야 합니다
+- 대소문자 구분됨
 
 ---
 
@@ -480,10 +598,16 @@ Required Components:
 └── Collider (Is Trigger: true)
 ```
 
-### World Space UI
+### 단일 Canvas + 다중 Panel UI
 ```
-Required Components:
+MainCanvas (World Space):
 ├── Canvas (Render Mode: World Space)
 ├── VivenUIPointerEvents
-└── VivenLuaBehaviour
+└── UI Panels
+    ├── SlideUIPanel + [VivenLuaBehaviour]
+    ├── LandingUIPanel + [VivenLuaBehaviour]
+    ├── LevelSelectUIPanel + [VivenLuaBehaviour]
+    ├── GameHUDPanel + [VivenLuaBehaviour]
+    ├── GameOverUIPanel + [VivenLuaBehaviour]
+    └── ResultUIPanel + [VivenLuaBehaviour]
 ```

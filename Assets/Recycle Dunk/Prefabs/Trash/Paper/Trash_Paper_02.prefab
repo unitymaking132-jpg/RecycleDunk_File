@@ -1,0 +1,175 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3817596843846929449
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8643366112955732537}
+  - component: {fileID: 637331278948094749}
+  - component: {fileID: 671210152741545178}
+  - component: {fileID: 2977568549348816477}
+  - component: {fileID: 6044406300403664979}
+  m_Layer: 0
+  m_Name: Trash_Paper_02
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8643366112955732537
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3817596843846929449}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.48826557, y: -0.004825315, z: 0.0031666856, w: 0.8726761}
+  m_LocalPosition: {x: 57.37, y: -6.18, z: 33.71}
+  m_LocalScale: {x: 5, y: 5, z: 5}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 5374224664029659662}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 58.455, y: -0.584, z: 0.089}
+--- !u!114 &637331278948094749
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3817596843846929449}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74d07e3b377ec3d48961467bba764b48, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VObject
+  displayName: 
+  objectId: fdda3e50-3e50-fdda-503e-dafd503edafd
+  contentType: 0
+  objectSyncType: 0
+  isInitialized: 1
+  isPrefab: 1
+--- !u!114 &671210152741545178
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3817596843846929449}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc68f482c570738488e474aea83038f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VivenGrabbableRigidView
+--- !u!114 &2977568549348816477
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3817596843846929449}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc0189e007fc4894797f7a073ab34d26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VivenRigidbodyControlModule
+  physicsType: 0
+  originMass: 1
+  originDrag: 0
+  originAngularDrag: 0.05
+  automaticCenterOfMass: 1
+  originCom: {x: 0, y: 0, z: 0}
+--- !u!114 &6044406300403664979
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3817596843846929449}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a36550c8545a5a44e9a60c70779454d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VivenGrabbableModule
+  grabType: 0
+  parentToHandOnGrab: 1
+  grabPoints: []
+  holdTimeThreshold: 1
+  throwForce: 5
+  attachPoints: []
+  excludeLayerObjects: []
+--- !u!1001 &5557351397233321445
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 8643366112955732537}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: a35b15972dc46da4ea97f56748165ad6, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a35b15972dc46da4ea97f56748165ad6, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.003
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a35b15972dc46da4ea97f56748165ad6, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a35b15972dc46da4ea97f56748165ad6, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a35b15972dc46da4ea97f56748165ad6, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a35b15972dc46da4ea97f56748165ad6, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a35b15972dc46da4ea97f56748165ad6, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a35b15972dc46da4ea97f56748165ad6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a35b15972dc46da4ea97f56748165ad6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a35b15972dc46da4ea97f56748165ad6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: a35b15972dc46da4ea97f56748165ad6, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c21d6349e0536c944ba8be602723a630, type: 2}
+    - target: {fileID: -3133999818167067184, guid: a35b15972dc46da4ea97f56748165ad6, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c21d6349e0536c944ba8be602723a630, type: 2}
+    - target: {fileID: 919132149155446097, guid: a35b15972dc46da4ea97f56748165ad6, type: 3}
+      propertyPath: m_Name
+      value: Mesh_Pizzabox
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a35b15972dc46da4ea97f56748165ad6, type: 3}
+--- !u!4 &5374224664029659662 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: a35b15972dc46da4ea97f56748165ad6, type: 3}
+  m_PrefabInstance: {fileID: 5557351397233321445}
+  m_PrefabAsset: {fileID: 0}

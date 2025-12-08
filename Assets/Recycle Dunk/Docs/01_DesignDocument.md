@@ -121,7 +121,7 @@
   - Collider (트리거 감지용)
 
 속성:
-  - trashCategory: string ("Paper" | "Plastic" | "Glass" | "Metal")
+  - trashCategory: string ("Paper" | "Plastic" | "Glass" | "Metal" | "GeneralGarbage")
   - isGrabbed: boolean
   - spawnPosition: Vector3
   - floatOffset: Vector3 (Perlin Noise 오프셋)
@@ -136,7 +136,7 @@
   - Collider (Trigger)
 
 속성:
-  - binCategory: string ("Paper" | "Plastic" | "Glass" | "Metal")
+  - binCategory: string ("Paper" | "Plastic" | "Glass" | "Metal" | "GeneralGarbage")
   - binColor: Color
 ```
 
@@ -154,6 +154,35 @@
 ---
 
 ## 5. UI 설계
+
+### 5.0 UI 아키텍처
+
+**단일 Canvas + 다중 Panel 구조**를 사용합니다.
+
+```
+MainCanvas (World Space)
+├── SlideUIPanel (Guide/How to Play)
+├── LandingUIPanel (메인 메뉴)
+├── LevelSelectUIPanel (난이도 선택)
+├── GameHUDPanel (게임 진행 중 HUD)
+├── GameOverUIPanel (게임오버)
+└── ResultUIPanel (결과 화면)
+```
+
+**설계 원칙**:
+- 하나의 Canvas에 모든 UI Panel 배치
+- GameManager가 상태에 따라 Panel을 SetActive(true/false)로 전환
+- 각 Panel에 해당 UI 스크립트(VivenLuaBehaviour) 부착
+- World Space Canvas로 VR 환경에 적합하게 구성
+
+**Panel 전환 흐름**:
+```
+GameManager.ChangeState(newState)
+    ↓
+HideAllUI() - 모든 Panel 비활성화
+    ↓
+ShowUI(uiName) - 해당 상태의 Panel만 활성화
+```
 
 ### 5.1 가이드 UI (SlideUI)
 
@@ -193,7 +222,9 @@
 ├─────────────────────────────────────┤
 │                                     │
 │   [Easy Mode]    [Hard Mode]        │
-│    (활성화)       (비활성화)          │
+│                   (추후 개발)         │
+│                                     │
+│         [난이도 설명 텍스트]          │
 │                                     │
 │              [뒤로가기]              │
 └─────────────────────────────────────┘
@@ -261,6 +292,7 @@ HP가 0이 되어 게임이 종료되었을 때 표시되는 UI
 - Retry 버튼으로 재시작
 
 **힌트 메시지 예시**:
+
 | 카테고리 | 메시지 |
 |---------|--------|
 | Paper | "Make sure paper is clean and dry!" |
@@ -350,24 +382,58 @@ BoundaryZone
 
 ---
 
-## 7. 이벤트 시스템
+## 7. 스크립트 간 통신 패턴
 
-### 7.1 게임 이벤트
+### 7.1 직접 호출 방식 (권장)
+
+UI 스크립트에서 GameManager를 직접 찾아서 메서드를 호출하는 방식을 사용합니다.
+
+```lua
+-- UI 스크립트에서 GameManager 찾기
+function GetGameManager()
+    local gameManagerObj = CS.UnityEngine.GameObject.Find("GameManager")
+    if gameManagerObj then
+        return gameManagerObj:GetLuaComponent("GameManager")
+    end
+    return nil
+end
+
+-- 버튼 클릭 시 GameManager 메서드 직접 호출
+function OnButtonClick()
+    local gameManager = GetGameManager()
+    if gameManager then
+        gameManager.OnGuideComplete()  -- 직접 호출
+    end
+end
+```
+
+**장점**:
+- EventCallback의 인스턴스 분리 문제 회피
+- 명확한 호출 흐름
+- 디버깅 용이
+
+### 7.2 GameManager 공개 메서드
+
+| 메서드명 | 호출 위치 | 설명 |
+|---------|----------|------|
+| `OnGuideComplete()` | SlideUIManager | 가이드 완료 → Landing 상태로 전환 |
+| `OnGoToGuide()` | LandingUIManager | How to Play 클릭 → Guide 상태로 전환 |
+| `GoToLevelSelect()` | LandingUIManager | Game Start 클릭 → LevelSelect 상태로 전환 |
+| `OnLevelSelected(difficulty)` | LevelSelectUI | 난이도 선택 → 게임 시작 |
+| `OnGoToMain()` | LevelSelectUI, ResultUI | 뒤로가기 → Landing 상태로 전환 |
+| `OnRetryGame()` | GameOverUI, ResultUI | 재시작 → 게임 다시 시작 |
+
+### 7.3 내부 이벤트 (EventCallback - 선택적 사용)
+
+ScoreManager, SpawnManager 등 내부 시스템 간 통신에는 EventCallback을 사용할 수 있습니다.
 
 | 이벤트명 | 발생 시점 | 파라미터 |
 |---------|----------|---------|
-| `onGameStart` | 게임 시작 | - |
-| `onGamePause` | 일시 정지 | - |
-| `onGameResume` | 게임 재개 | - |
-| `onGameOver` | HP 0 또는 시간 종료 | reason: string |
-| `onTrashSpawn` | 쓰레기 스폰 | trashItem: GameObject |
-| `onTrashGrab` | 쓰레기 잡음 | trashItem: GameObject |
-| `onTrashRelease` | 쓰레기 놓음 | trashItem: GameObject |
-| `onTrashBinned` | 쓰레기통에 들어감 | isCorrect: boolean, category: string |
-| `onTrashLost` | 쓰레기 범위 이탈 | trashItem: GameObject |
 | `onScoreUpdate` | 점수 변경 | newScore: number |
 | `onHPUpdate` | HP 변경 | newHP: number |
 | `onComboUpdate` | 콤보 변경 | combo: number |
+| `onTrashSpawn` | 쓰레기 스폰 | trashItem: GameObject |
+| `onTrashDestroyed` | 쓰레기 제거 | trashItem: GameObject |
 
 ---
 
