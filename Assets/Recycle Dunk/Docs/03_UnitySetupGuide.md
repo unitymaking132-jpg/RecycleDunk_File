@@ -144,14 +144,138 @@ RecycleDunk (Scene)
    - `VivenLuaBehaviour` 컴포넌트 추가
 3. **VivenLuaBehaviour 설정**:
    - `Lua Script`: `Assets/Recycle Dunk/Scripts/Manager/SpawnManager.lua`
+
 4. **SpawnZone 설정**:
    - 빈 GameObject 생성: `SpawnZone`
    - `BoxCollider` 컴포넌트 추가
    - `Is Trigger`: 체크
    - 콜라이더 크기를 쓰레기 스폰 영역에 맞게 조절
-   - SpawnManager의 `SpawnZoneObject`에 연결
 
-> **참고**: 쓰레기는 BoxCollider의 bounds 내 랜덤 위치에 스폰됩니다.
+5. **SpawnManager 의존성 주입** (Script Variables):
+   ```
+   ├── SpawnZoneObject: SpawnZone (GameObject)
+   │
+   ├── PaperPrefab1: Trash_Paper_01 (Prefab)
+   ├── PaperPrefab2: Trash_Paper_02 (Prefab)
+   ├── PaperPrefab3: Trash_Paper_03 (Prefab)
+   │
+   ├── PlasticPrefab1: Trash_Plastic_01 (Prefab)
+   ├── PlasticPrefab2: Trash_Plastic_02 (Prefab)
+   ├── PlasticPrefab3: Trash_Plastic_03 (Prefab)
+   │
+   ├── GlassPrefab1: Trash_Glass_01 (Prefab)
+   ├── GlassPrefab2: Trash_Glass_02 (Prefab)
+   │
+   ├── MetalPrefab1: Trash_Metal_Can01 (Prefab)
+   ├── MetalPrefab2: Trash_Metal_Can02 (Prefab)
+   │
+   ├── GeneralGarbagePrefab1: Trash_Misc_CrackedEgg (Prefab)
+   │
+   └── ScoreManagerObject: ScoreManager (GameObject)
+   ```
+
+> **참고**:
+> - VIVEN SDK의 의존성 주입은 배열을 지원하지 않아 개별 필드로 주입합니다.
+> - 쓰레기는 BoxCollider의 bounds 내 랜덤 위치에 스폰됩니다.
+> - 각 프리팹 필드는 Nullable이므로 비어있어도 에러가 나지 않지만, 해당 슬롯은 스폰 풀에서 제외됩니다.
+
+---
+
+## 4.5 쓰레기 프리팹 설정 (TrashItem Prefab)
+
+### 4.5.1 프리팹 구조
+
+각 쓰레기 프리팹은 다음 컴포넌트가 필요합니다:
+
+```
+Trash_[Category]_[Name] (Prefab Root)
+├── VObject
+├── VivenGrabbableModule
+├── VivenRigidbodyControlModule
+├── VivenGrabbableRigidView
+├── VivenLuaBehaviour (TrashItem.lua)
+├── VivenLuaBehaviour (FloatingBehavior.lua) [선택]
+├── Rigidbody (Use Gravity: false)
+└── Collider (Box/Mesh/Capsule)
+```
+
+### 4.5.2 TrashItem.lua 의존성 주입
+
+```
+Script Variables:
+├── TrashCategory: "Paper" | "Plastic" | "Glass" | "Metal" | "GeneralGarbage"
+└── ScoreManagerObject: ScoreManager (GameObject) [선택]
+```
+
+**TrashCategory 값**:
+| 프리팹 폴더 | TrashCategory 값 |
+|------------|------------------|
+| Prefabs/Trash/Paper/ | "Paper" |
+| Prefabs/Trash/Plastic/ | "Plastic" |
+| Prefabs/Trash/Glass/ | "Glass" |
+| Prefabs/Trash/Metal/ | "Metal" |
+| Prefabs/Trash/Misc/ | "GeneralGarbage" |
+
+### 4.5.3 프리팹 생성 절차
+
+1. **3D 모델 준비**: 쓰레기 모델 임포트
+2. **빈 GameObject 생성**: `Trash_Paper_01` 형식으로 이름 지정
+3. **3D 모델을 자식으로 추가**
+
+4. **컴포넌트 추가** (부모 오브젝트에):
+   - `VObject` 추가
+   - `Rigidbody` 추가 → `Use Gravity`: **false** (무중력)
+   - `Collider` 추가 (모델에 맞는 타입)
+   - `VivenGrabbableModule` 추가
+   - `VivenRigidbodyControlModule` 추가
+   - `VivenGrabbableRigidView` 추가
+   - `VivenLuaBehaviour` 추가 → `TrashItem.lua` 연결
+
+5. **VObject 설정**:
+   - `Content Type`: Prepared
+   - `Object Sync Type`: Continuous
+
+6. **VivenRigidbodyControlModule 설정**:
+   - `Use Gravity`: **비활성화** (무중력 효과)
+
+7. **TrashItem.lua 의존성 주입**:
+   - `TrashCategory`: 해당 카테고리 문자열 입력 (예: "Paper")
+   - `ScoreManagerObject`: 비워두기 (런타임에 SpawnManager가 처리)
+
+8. **프리팹 저장**:
+   - `Assets/Recycle Dunk/Prefabs/Trash/[Category]/Trash_[Category]_[Name].prefab`
+
+### 4.5.4 FloatingBehavior 추가 (선택)
+
+무중력 공간에서 자연스러운 떠다니기 효과:
+
+1. `VivenLuaBehaviour` 컴포넌트 추가
+2. `Lua Script`: `FloatingBehavior.lua` 연결
+3. 별도 의존성 주입 없음 (기본값 사용)
+
+### 4.5.5 현재 프리팹 목록
+
+```
+Assets/Recycle Dunk/Prefabs/Trash/
+├── Paper/
+│   ├── Trash_Paper_01.prefab
+│   ├── Trash_Paper_02.prefab
+│   └── Trash_Paper_03.prefab
+├── Plastic/
+│   ├── Trash_Plastic_01.prefab
+│   ├── Trash_Plastic_02.prefab
+│   └── Trash_Plastic_03.prefab
+├── Glass/
+│   ├── Trash_Glass_01.prefab
+│   └── Trash_Glass_02.prefab
+├── Metal/
+│   ├── Trash_Metal_Can01.prefab
+│   └── Trash_Metal_Can02.prefab
+└── Misc/
+    └── Trash_Misc_CrackedEgg.prefab
+```
+
+> **주의**: Glass 폴더의 프리팹 이름이 `Trash_Galss_01.prefab`으로 오타가 있습니다. `Trash_Glass_01.prefab`으로 수정 권장.
 
 ### 4.3 ScoreManager 설정
 

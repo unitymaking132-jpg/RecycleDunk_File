@@ -306,8 +306,11 @@ function StartGame()
 
     -- SpawnManager 초기화 및 시작
     if spawnManager then
+        Debug.Log("[GameManager] SpawnManager found, calling InitSpawn")
         spawnManager.InitSpawn(settings)
         spawnManager.StartSpawning()
+    else
+        Debug.Log("[GameManager] WARNING: SpawnManager is nil! Check SpawnManagerObject injection")
     end
 
     -- 상태 변경

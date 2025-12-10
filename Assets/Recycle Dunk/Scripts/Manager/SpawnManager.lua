@@ -24,25 +24,37 @@ end
 ---@details 스폰 영역 오브젝트 (BoxCollider 포함)
 SpawnZoneObject = NullableInject(SpawnZoneObject)
 
----@type GameObject[]
----@details Paper 쓰레기 프리팹 배열
-PaperPrefabs = NullableInject(PaperPrefabs)
+-- Paper 프리팹 (개별 주입)
+---@type GameObject
+PaperPrefab1 = NullableInject(PaperPrefab1)
+---@type GameObject
+PaperPrefab2 = NullableInject(PaperPrefab2)
+---@type GameObject
+PaperPrefab3 = NullableInject(PaperPrefab3)
 
----@type GameObject[]
----@details Plastic 쓰레기 프리팹 배열
-PlasticPrefabs = NullableInject(PlasticPrefabs)
+-- Plastic 프리팹 (개별 주입)
+---@type GameObject
+PlasticPrefab1 = NullableInject(PlasticPrefab1)
+---@type GameObject
+PlasticPrefab2 = NullableInject(PlasticPrefab2)
+---@type GameObject
+PlasticPrefab3 = NullableInject(PlasticPrefab3)
 
----@type GameObject[]
----@details Glass 쓰레기 프리팹 배열
-GlassPrefabs = NullableInject(GlassPrefabs)
+-- Glass 프리팹 (개별 주입)
+---@type GameObject
+GlassPrefab1 = NullableInject(GlassPrefab1)
+---@type GameObject
+GlassPrefab2 = NullableInject(GlassPrefab2)
 
----@type GameObject[]
----@details Metal 쓰레기 프리팹 배열
-MetalPrefabs = NullableInject(MetalPrefabs)
+-- Metal 프리팹 (개별 주입)
+---@type GameObject
+MetalPrefab1 = NullableInject(MetalPrefab1)
+---@type GameObject
+MetalPrefab2 = NullableInject(MetalPrefab2)
 
----@type GameObject[]
----@details GeneralGarbage 쓰레기 프리팹 배열
-GeneralGarbagePrefabs = NullableInject(GeneralGarbagePrefabs)
+-- GeneralGarbage 프리팹 (개별 주입)
+---@type GameObject
+GeneralGarbagePrefab1 = NullableInject(GeneralGarbagePrefab1)
 
 ---@type GameObject
 ---@details ScoreManager 오브젝트
@@ -102,15 +114,34 @@ local scoreManager = nil
 
 --region Unity Lifecycle
 
+---@details 개별 프리팹들을 테이블로 수집 (nil 제외)
+---@param ... GameObject 프리팹들
+---@return table
+local function CollectPrefabs(...)
+    local result = {}
+    for i = 1, select("#", ...) do
+        local prefab = select(i, ...)
+        if prefab then
+            table.insert(result, prefab)
+        end
+    end
+    return result
+end
+
 function awake()
-    -- 카테고리별 프리팹 테이블 구성
+    -- 카테고리별 프리팹 테이블 구성 (개별 주입된 프리팹들 수집)
     prefabsByCategory = {
-        Paper = PaperPrefabs or {},
-        Plastic = PlasticPrefabs or {},
-        Glass = GlassPrefabs or {},
-        Metal = MetalPrefabs or {},
-        GeneralGarbage = GeneralGarbagePrefabs or {}
+        Paper = CollectPrefabs(PaperPrefab1, PaperPrefab2, PaperPrefab3),
+        Plastic = CollectPrefabs(PlasticPrefab1, PlasticPrefab2, PlasticPrefab3),
+        Glass = CollectPrefabs(GlassPrefab1, GlassPrefab2),
+        Metal = CollectPrefabs(MetalPrefab1, MetalPrefab2),
+        GeneralGarbage = CollectPrefabs(GeneralGarbagePrefab1)
     }
+
+    -- 로드된 프리팹 수 로깅
+    for category, prefabs in pairs(prefabsByCategory) do
+        Debug.Log("[SpawnManager] " .. category .. " prefabs loaded: " .. #prefabs)
+    end
 
     -- 스폰 영역 BoxCollider에서 bounds 가져오기
     if SpawnZoneObject then
@@ -121,7 +152,7 @@ function awake()
             spawnBoundsMax = bounds.max
             Debug.Log("[SpawnManager] Spawn zone bounds - Min: " .. tostring(spawnBoundsMin) .. ", Max: " .. tostring(spawnBoundsMax))
         else
-            Debug.LogWarning("[SpawnManager] SpawnZoneObject does not have BoxCollider!")
+            Debug.Log("[SpawnManager] SpawnZoneObject does not have BoxCollider!")
         end
     end
 
@@ -179,6 +210,8 @@ end
 ---@details 스폰 설정 초기화
 ---@param settings table 게임 설정
 function InitSpawn(settings)
+    Debug.Log("[SpawnManager] InitSpawn called")
+
     if settings then
         spawnInterval = settings.spawnInterval or 3
         maxTrashCount = settings.maxTrashCount or 5
@@ -204,13 +237,17 @@ end
 
 ---@details 스폰 시작
 function StartSpawning()
+    Debug.Log("[SpawnManager] StartSpawning called")
+
     if isSpawning then
+        Debug.Log("[SpawnManager] Already spawning, returning")
         return
     end
 
     isSpawning = true
     isPaused = false
 
+    Debug.Log("[SpawnManager] Calling SpawnInitialTrash")
     -- 초기 쓰레기 즉시 스폰
     SpawnInitialTrash()
 
@@ -277,8 +314,11 @@ end
 ---@details 초기 쓰레기 스폰 (게임 시작 시)
 function SpawnInitialTrash()
     local initialCount = math.min(3, maxTrashCount)
+    Debug.Log("[SpawnManager] SpawnInitialTrash - spawning " .. initialCount .. " items")
+
     for i = 1, initialCount do
-        SpawnRandomTrash()
+        local success = SpawnRandomTrash()
+        Debug.Log("[SpawnManager] SpawnRandomTrash #" .. i .. " result: " .. tostring(success))
     end
 end
 
@@ -296,9 +336,16 @@ end
 function SpawnRandomTrash()
     -- 랜덤 카테고리 선택
     local category = GetRandomCategory()
+    if not category then
+        Debug.Log("[SpawnManager] SpawnRandomTrash - no category available")
+        return false
+    end
+
+    Debug.Log("[SpawnManager] SpawnRandomTrash - category: " .. category)
 
     -- 랜덤 위치 선택 (BoxCollider bounds 내)
     local position = GetRandomSpawnPosition()
+    Debug.Log("[SpawnManager] SpawnRandomTrash - position: " .. tostring(position))
 
     return SpawnTrash(category, position)
 end
@@ -311,22 +358,27 @@ function SpawnTrash(category, position)
     -- 프리팹 가져오기
     local prefab = GetRandomPrefab(category)
     if not prefab then
-        Debug.LogWarning("[SpawnManager] No prefab found for category: " .. category)
+        Debug.Log("[SpawnManager] No prefab found for category: " .. category)
         return false
     end
 
     -- 오브젝트 생성
     local trashObject = CS.UnityEngine.Object.Instantiate(prefab, position, CS.UnityEngine.Quaternion.identity)
 
-    -- TrashItem 스크립트 초기화
+    -- VObject ID 재생성 (중복 방지)
+    local vObject = trashObject:GetComponent("VObject")
+    if vObject then
+        local newId = CS.System.Guid.NewGuid():ToString()
+        vObject.objectId = newId
+        Debug.Log("[SpawnManager] VObject ID regenerated: " .. newId)
+    end
+
+    -- TrashItem 스크립트 초기화 (self 참조와 scoreManager 전달)
     local trashItem = trashObject:GetLuaComponent("TrashItem")
     if trashItem then
-        trashItem.InitTrash(category, position)
-
-        -- ScoreManager 참조 설정
-        if scoreManager then
-            -- ScoreManagerObject 주입은 프리팹에서 설정
-        end
+        trashItem.InitTrash(category, position, self, scoreManager)
+    else
+        Debug.Log("[SpawnManager] TrashItem component not found on prefab")
     end
 
     -- FloatingBehavior 초기화
@@ -355,12 +407,24 @@ end
 
 --region Utility Functions
 
----@details 랜덤 카테고리 선택
----@return string
+---@details 랜덤 카테고리 선택 (프리팹이 있는 카테고리만)
+---@return string|nil
 function GetRandomCategory()
-    local categories = { "Paper", "Plastic", "Glass", "Metal", "GeneralGarbage" }
-    local index = math.random(1, #categories)
-    return categories[index]
+    -- 프리팹이 있는 카테고리만 수집
+    local availableCategories = {}
+    for category, prefabs in pairs(prefabsByCategory) do
+        if #prefabs > 0 then
+            table.insert(availableCategories, category)
+        end
+    end
+
+    if #availableCategories == 0 then
+        Debug.Log("[SpawnManager] No prefabs available in any category!")
+        return nil
+    end
+
+    local index = math.random(1, #availableCategories)
+    return availableCategories[index]
 end
 
 ---@details BoxCollider bounds 내에서 랜덤 위치 선택
@@ -368,7 +432,7 @@ end
 function GetRandomSpawnPosition()
     if not spawnBoundsMin or not spawnBoundsMax then
         -- bounds가 없으면 기본 위치 반환
-        Debug.LogWarning("[SpawnManager] Spawn bounds not set, using default position")
+        Debug.Log("[SpawnManager] Spawn bounds not set, using default position")
         return Vector3(0, 1.5, 1)
     end
 

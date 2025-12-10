@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 468a46d0ae32c3544b7d98094e6448a9, type: 3}
   m_Name: AddressableAssetSettings
   m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetSettings
-  m_DefaultGroup: d8a69d7ee3cb13d4c85e190e6b8e45ad
+  m_DefaultGroup: 66ad40f1822a33e4facf218d55c0cbe3
   m_currentHash:
     serializedVersion: 2
-    Hash: cad56ccb51879991557ddd15ce58e7ed
+    Hash: 56e8e89f65475fcaa4a0dee460aed516
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 1
   m_BundleLocalCatalog: 0
@@ -47,10 +47,10 @@ MonoBehaviour:
   m_StripUnityVersionFromBundleBuild: 0
   m_DisableVisibleSubAssetRepresentations: 0
   m_BuiltInBundleNaming: 2
-  mBuiltInBundleCustomNaming: 2899d8cb-8a7f-41e0-a7f9-55b9a3d1d60f
+  mBuiltInBundleCustomNaming: 80ca4a94-201f-4910-abd8-3eda8227d978
   m_MonoScriptBundleNaming: 2
   m_CheckForContentUpdateRestrictionsOption: 0
-  m_MonoScriptBundleCustomNaming: 2899d8cb-8a7f-41e0-a7f9-55b9a3d1d60f
+  m_MonoScriptBundleCustomNaming: 80ca4a94-201f-4910-abd8-3eda8227d978
   m_RemoteCatalogBuildPath:
     m_Id: 0af22662dbe6f2c44ac24418b0bfe027
   m_RemoteCatalogLoadPath:
@@ -72,13 +72,13 @@ MonoBehaviour:
       m_ProfileName: Default
       m_Values:
       - m_Id: 0af22662dbe6f2c44ac24418b0bfe027
-        m_Value: C:\Users\HP\AppData\Local\Temp\/VivenSDK/
+        m_Value: C:\Users\encep\AppData\Local\Temp\/VivenSDK/
       - m_Id: 14f81c7777eb324478d73ce51db6261d
         m_Value: '[UnityEditor.EditorUserBuildSettings.activeBuildTarget]'
       - m_Id: dc43c8e7648b72c43951bbd522789c95
         m_Value: '{UnityEngine.AddressableAssets.Addressables.RuntimePath}/[BuildTarget]'
       - m_Id: e8c591b2c60d2ad499654f68ba37b2a9
-        m_Value: C:\Users\HP\AppData\Local\Temp\/VivenSDK/
+        m_Value: C:\Users\encep\AppData\Local\Temp\/VivenSDK/
       - m_Id: fd13b8cf8d4b8764c937a095ddd4c483
         m_Value: '[UnityEngine.AddressableAssets.Addressables.BuildPath]/[BuildTarget]'
     m_ProfileEntryNames:

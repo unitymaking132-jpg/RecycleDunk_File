@@ -1,9 +1,6 @@
 --- TrashItem: 쓰레기 아이템 스크립트
 --- 잡기, 던지기, 쓰레기통 판정 처리
 
--- EventCallback 모듈 로드 (Import Scripts에서 EventCallback 추가 필요)
-local GameEvent = ImportLuaScript(EventCallback)
-
 --region Injection list
 local _INJECTED_ORDER = 0
 local function checkInject(OBJECT)
@@ -21,11 +18,15 @@ end
 
 ---@type string
 ---@details 쓰레기 카테고리 ("Paper", "Plastic", "Glass", "Metal", "GeneralGarbage")
-TrashCategory = checkInject(TrashCategory)
+TrashCategory = NullableInject(TrashCategory)
 
 ---@type GameObject
 ---@details ScoreManager 오브젝트
 ScoreManagerObject = NullableInject(ScoreManagerObject)
+
+---@type GameObject
+---@details SpawnManager 오브젝트 (콜백용)
+SpawnManagerObject = NullableInject(SpawnManagerObject)
 
 --endregion
 
@@ -42,6 +43,10 @@ local floatingBehavior = nil
 ---@type ScoreManager
 ---@details 점수 매니저
 local scoreManager = nil
+
+---@type SpawnManager
+---@details 스폰 매니저 (콜백용)
+local spawnManager = nil
 
 ---@type boolean
 ---@details 현재 잡힌 상태
@@ -73,14 +78,24 @@ function awake()
         scoreManager = ScoreManagerObject:GetLuaComponent("ScoreManager")
     end
 
+    -- SpawnManager 참조
+    if SpawnManagerObject then
+        spawnManager = SpawnManagerObject:GetLuaComponent("SpawnManager")
+    end
+
     -- 스폰 위치 저장
     spawnPosition = self.transform.position
+
+    -- 기본 카테고리 설정
+    if not TrashCategory then
+        TrashCategory = "GeneralGarbage"
+    end
 end
 
 function start()
     -- 카테고리 유효성 검사
     if not IsValidCategory(TrashCategory) then
-        Debug.LogWarning("[TrashItem] Invalid category: " .. tostring(TrashCategory))
+        Debug.Log("[TrashItem] Invalid category: " .. tostring(TrashCategory) .. ", using GeneralGarbage")
         TrashCategory = "GeneralGarbage"
     end
 
@@ -120,9 +135,6 @@ function OnGrab()
         floatingBehavior.SetGrabbed(true)
     end
 
-    -- 이벤트 발생
-    GameEvent.invoke("onTrashGrab", self.gameObject, TrashCategory)
-
     -- 햅틱 피드백
     PlayGrabHaptic()
 
@@ -132,9 +144,6 @@ end
 ---@details 놓기 이벤트 핸들러
 function OnRelease()
     isGrabbed = false
-
-    -- 이벤트 발생
-    GameEvent.invoke("onTrashRelease", self.gameObject, TrashCategory)
 
     -- 햅틱 피드백
     PlayReleaseHaptic()
@@ -178,7 +187,6 @@ function OnEnterTrashBin(trashBin)
         if scoreManager then
             scoreManager.OnCorrectAnswer(TrashCategory)
         end
-        GameEvent.invoke("onTrashBinned", true, TrashCategory, binCategory)
         PlayCorrectEffect()
         Debug.Log("[TrashItem] Correct! " .. TrashCategory .. " -> " .. binCategory)
     else
@@ -186,7 +194,6 @@ function OnEnterTrashBin(trashBin)
         if scoreManager then
             scoreManager.OnWrongAnswer(TrashCategory, binCategory)
         end
-        GameEvent.invoke("onTrashBinned", false, TrashCategory, binCategory)
         PlayWrongEffect()
         Debug.Log("[TrashItem] Wrong! " .. TrashCategory .. " -> " .. binCategory)
     end
@@ -233,12 +240,22 @@ end
 
 --region Public Functions
 
----@details 쓰레기 아이템 초기화
+---@details 쓰레기 아이템 초기화 (SpawnManager에서 호출)
 ---@param category string 쓰레기 카테고리
 ---@param position Vector3 스폰 위치
-function InitTrash(category, position)
-    TrashCategory = category or TrashCategory
+---@param spawnMgr SpawnManager 스폰 매니저 참조
+---@param scoreMgr ScoreManager 점수 매니저 참조
+function InitTrash(category, position, spawnMgr, scoreMgr)
+    TrashCategory = category or TrashCategory or "GeneralGarbage"
     spawnPosition = position or self.transform.position
+
+    -- 매니저 참조 설정
+    if spawnMgr then
+        spawnManager = spawnMgr
+    end
+    if scoreMgr then
+        scoreManager = scoreMgr
+    end
 
     isJudged = false
     isGrabbed = false
@@ -248,6 +265,8 @@ function InitTrash(category, position)
         floatingBehavior.SetSpawnPosition(spawnPosition)
         floatingBehavior.InitFloating(nil)
     end
+
+    Debug.Log("[TrashItem] InitTrash - Category: " .. TrashCategory)
 end
 
 ---@details 카테고리 반환
@@ -275,11 +294,13 @@ function DestroyTrash()
         grabbableModule:Release()
     end
 
+    -- SpawnManager에 알림
+    if spawnManager and spawnManager.OnTrashDestroyed then
+        spawnManager.OnTrashDestroyed(self.gameObject, TrashCategory)
+    end
+
     -- 오브젝트 비활성화 (풀링용) 또는 제거
     self.gameObject:SetActive(false)
-
-    -- 이벤트 발생
-    GameEvent.invoke("onTrashDestroyed", self.gameObject, TrashCategory)
 end
 
 ---@details 경계 이탈 처리

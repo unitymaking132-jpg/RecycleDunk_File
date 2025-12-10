@@ -10,27 +10,27 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
       propertyPath: m_LocalScale.x
-      value: 20
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
       propertyPath: m_LocalScale.y
-      value: 20
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
       propertyPath: m_LocalScale.z
-      value: 20
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 31.4
+      value: 55.308956
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 25.4
+      value: -4.8394527
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -14
+      value: 44.025604
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
       propertyPath: m_LocalRotation.w
@@ -103,6 +103,24 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2874798487236782474}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7776347235264606507}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 630916316739063787}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3204295135880449342}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8237361966756995366}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2968623593532162059}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8726222273760861944}
   m_SourcePrefab: {fileID: 100100000, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
 --- !u!1 &7426207790804659862 stripped
 GameObject:
@@ -130,3 +148,118 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.3, y: 0.06, z: 0.3}
   m_Center: {x: 0, y: 0.033, z: 0}
+--- !u!114 &7776347235264606507
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7426207790804659862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74d07e3b377ec3d48961467bba764b48, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VObject
+  displayName: 
+  objectId: 80c42fc5-2fc5-80c4-c52f-c480c52fc480
+  contentType: 0
+  objectSyncType: 0
+  isInitialized: 1
+  isPrefab: 1
+--- !u!114 &630916316739063787
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7426207790804659862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc68f482c570738488e474aea83038f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VivenGrabbableRigidView
+--- !u!114 &3204295135880449342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7426207790804659862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc0189e007fc4894797f7a073ab34d26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VivenRigidbodyControlModule
+  physicsType: 1
+  originMass: 1
+  originDrag: 0
+  originAngularDrag: 0.05
+  automaticCenterOfMass: 1
+  originCom: {x: 0, y: 0, z: 0}
+--- !u!114 &8237361966756995366
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7426207790804659862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a36550c8545a5a44e9a60c70779454d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VivenGrabbableModule
+  grabType: 1
+  parentToHandOnGrab: 1
+  grabPoints: []
+  holdTimeThreshold: 1
+  throwForce: 5
+  attachPoints: []
+  excludeLayerObjects: []
+--- !u!114 &2968623593532162059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7426207790804659862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2423040b874d78a303b9145569c1fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.SDK::TwentyOz.VivenSDK.Scripts.Core.Lua.VivenLuaBehaviour
+  luaScript: {fileID: 3156155758468439326, guid: 919f33af6f5d7394ca90e8e81bd643bb, type: 3}
+  injection:
+    objectValues: []
+    gameObjectValues: []
+    vector3Values: []
+    floatValue: []
+    intValue: []
+    boolValue: []
+    stringValue:
+    - name: TrashCategory
+      value: Paper
+    colorValue: []
+    vivenScriptValue: []
+--- !u!114 &8726222273760861944
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7426207790804659862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2423040b874d78a303b9145569c1fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.SDK::TwentyOz.VivenSDK.Scripts.Core.Lua.VivenLuaBehaviour
+  luaScript: {fileID: 3156155758468439326, guid: f8b6cf33ce223714aa1ca8178b6ad013, type: 3}
+  injection:
+    objectValues: []
+    gameObjectValues: []
+    vector3Values: []
+    floatValue: []
+    intValue: []
+    boolValue: []
+    stringValue: []
+    colorValue: []
+    vivenScriptValue: []
