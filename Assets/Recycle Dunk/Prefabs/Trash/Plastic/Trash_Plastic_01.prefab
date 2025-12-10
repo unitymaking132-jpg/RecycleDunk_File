@@ -99,6 +99,27 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6bf946cac2f003b49a061db26e9e8097, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8081594052136888921}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6bf946cac2f003b49a061db26e9e8097, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7337991678154069186}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6bf946cac2f003b49a061db26e9e8097, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 66786544830252181}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6bf946cac2f003b49a061db26e9e8097, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 146405721191868198}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6bf946cac2f003b49a061db26e9e8097, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 940644229539364183}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6bf946cac2f003b49a061db26e9e8097, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4101292209191724792}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6bf946cac2f003b49a061db26e9e8097, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4972753450724387944}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6bf946cac2f003b49a061db26e9e8097, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2661968770488412750}
   m_SourcePrefab: {fileID: 100100000, guid: 6bf946cac2f003b49a061db26e9e8097, type: 3}
 --- !u!1 &3095062802030194173 stripped
 GameObject:
@@ -127,3 +148,139 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -6858852666998472530, guid: 42cadf4a73ec6ba4590ea5b1892e5a9e, type: 3}
+--- !u!114 &7337991678154069186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3095062802030194173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2423040b874d78a303b9145569c1fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.SDK::TwentyOz.VivenSDK.Scripts.Core.Lua.VivenLuaBehaviour
+  luaScript: {fileID: 3156155758468439326, guid: f8b6cf33ce223714aa1ca8178b6ad013, type: 3}
+  injection:
+    objectValues: []
+    gameObjectValues: []
+    vector3Values: []
+    floatValue: []
+    intValue: []
+    boolValue: []
+    stringValue: []
+    colorValue: []
+    vivenScriptValue: []
+--- !u!114 &66786544830252181
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3095062802030194173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2423040b874d78a303b9145569c1fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.SDK::TwentyOz.VivenSDK.Scripts.Core.Lua.VivenLuaBehaviour
+  luaScript: {fileID: 3156155758468439326, guid: 919f33af6f5d7394ca90e8e81bd643bb, type: 3}
+  injection:
+    objectValues: []
+    gameObjectValues: []
+    vector3Values: []
+    floatValue: []
+    intValue: []
+    boolValue: []
+    stringValue:
+    - name: TrashCategory
+      value: Plastic
+    colorValue: []
+    vivenScriptValue: []
+--- !u!65 &146405721191868198
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3095062802030194173}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.07, y: 0.27, z: 0.06}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &940644229539364183
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3095062802030194173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74d07e3b377ec3d48961467bba764b48, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VObject
+  displayName: 
+  objectId: af6e04b2-1c5b-4b2a-ac5e-39c9a2d7c632
+  contentType: 0
+  objectSyncType: 0
+  isInitialized: 1
+  isPrefab: 1
+--- !u!114 &4101292209191724792
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3095062802030194173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc68f482c570738488e474aea83038f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VivenGrabbableRigidView
+--- !u!114 &4972753450724387944
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3095062802030194173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc0189e007fc4894797f7a073ab34d26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VivenRigidbodyControlModule
+  physicsType: 1
+  originMass: 1
+  originDrag: 0
+  originAngularDrag: 0.05
+  automaticCenterOfMass: 1
+  originCom: {x: 0, y: 0, z: 0}
+--- !u!114 &2661968770488412750
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3095062802030194173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a36550c8545a5a44e9a60c70779454d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VivenGrabbableModule
+  grabType: 1
+  parentToHandOnGrab: 1
+  grabPoints: []
+  holdTimeThreshold: 1
+  throwForce: 5
+  attachPoints: []
+  excludeLayerObjects: []

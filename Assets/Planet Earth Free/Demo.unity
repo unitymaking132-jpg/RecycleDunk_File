@@ -1766,10 +1766,30 @@ MonoBehaviour:
     gameObjectValues:
     - name: SpawnZoneObject
       value: {fileID: 1326988292}
+    - name: ScoreManagerObject
+      value: {fileID: 647412904}
+    - name: ScoreManagerObject
+      value: {fileID: 3884176908770138872, guid: 6878c4e50b2bbda438f89a80f28156f7, type: 3}
+    - name: ScoreManagerObject
+      value: {fileID: 8815976974089129500, guid: c753aaa3b0fb5694f95312696eb300e5, type: 3}
+    - name: ScoreManagerObject
+      value: {fileID: 2894834273641197955, guid: 74e643d72759e784da090d9bebe14d54, type: 3}
+    - name: ScoreManagerObject
+      value: {fileID: 5149866734208822933, guid: 3564cf519ee071e4fa9bde4080abbc54, type: 3}
+    - name: ScoreManagerObject
+      value: {fileID: 7124058157928312488, guid: f703270e65c195748b4266d78e4e899d, type: 3}
     - name: PaperPrefab1
       value: {fileID: 7426207790804659862, guid: 66a47aba60f872e41aa69c0ba4b89bd9, type: 3}
     - name: ScoreManagerObject
-      value: {fileID: 647412904}
+      value: {fileID: 3817596843846929449, guid: 300bc335bc58c584ab43b756ee0e64fd, type: 3}
+    - name: ScoreManagerObject
+      value: {fileID: 6299130683191133917, guid: 3fbbf39f507418e4a9583f545d88dd93, type: 3}
+    - name: ScoreManagerObject
+      value: {fileID: 3095062802030194173, guid: 048d153afae65ac47abe9f587f0f3c6c, type: 3}
+    - name: ScoreManagerObject
+      value: {fileID: 1702720612638093255, guid: fe88a4e4f5f19d94cb8aa3785e843f7e, type: 3}
+    - name: ScoreManagerObject
+      value: {fileID: 6504142964800077552, guid: a3e5abfad0fa46847bdfd1465fd3864c, type: 3}
     vector3Values: []
     floatValue: []
     intValue: []

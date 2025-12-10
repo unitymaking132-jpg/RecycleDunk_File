@@ -13,6 +13,9 @@ GameObject:
   - component: {fileID: -2138375661783026754}
   - component: {fileID: -5644698430494176975}
   - component: {fileID: -145212734250006867}
+  - component: {fileID: 1936787013930473680}
+  - component: {fileID: 6706394647687777617}
+  - component: {fileID: 7693196959804418954}
   m_Layer: 0
   m_Name: Trash_Paper_03
   m_TagString: Untagged
@@ -104,6 +107,75 @@ MonoBehaviour:
   throwForce: 5
   attachPoints: []
   excludeLayerObjects: []
+--- !u!65 &1936787013930473680
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6299130683191133917}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.16, y: 0.27, z: 0.23}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6706394647687777617
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6299130683191133917}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2423040b874d78a303b9145569c1fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.SDK::TwentyOz.VivenSDK.Scripts.Core.Lua.VivenLuaBehaviour
+  luaScript: {fileID: 3156155758468439326, guid: 919f33af6f5d7394ca90e8e81bd643bb, type: 3}
+  injection:
+    objectValues: []
+    gameObjectValues: []
+    vector3Values: []
+    floatValue: []
+    intValue: []
+    boolValue: []
+    stringValue:
+    - name: TrashCategory
+      value: Paper
+    colorValue: []
+    vivenScriptValue: []
+--- !u!114 &7693196959804418954
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6299130683191133917}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2423040b874d78a303b9145569c1fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Twoz.SDK::TwentyOz.VivenSDK.Scripts.Core.Lua.VivenLuaBehaviour
+  luaScript: {fileID: 3156155758468439326, guid: f8b6cf33ce223714aa1ca8178b6ad013, type: 3}
+  injection:
+    objectValues: []
+    gameObjectValues: []
+    vector3Values: []
+    floatValue: []
+    intValue: []
+    boolValue: []
+    stringValue: []
+    colorValue: []
+    vivenScriptValue: []
 --- !u!1001 &936659301709790263
 PrefabInstance:
   m_ObjectHideFlags: 0
