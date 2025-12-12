@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 468a46d0ae32c3544b7d98094e6448a9, type: 3}
   m_Name: AddressableAssetSettings
   m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetSettings
-  m_DefaultGroup: e62f0262ee42d3f429b0475bbaa582d6
+  m_DefaultGroup: 7dcb0d675c7371b4a92dd347d4b36e11
   m_currentHash:
     serializedVersion: 2
-    Hash: 90d5d9a6670bc3b2ceb29e070e7a79bf
+    Hash: 8a1336e30e325b63828c5c335d0edb87
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 1
   m_BundleLocalCatalog: 0
@@ -47,10 +47,10 @@ MonoBehaviour:
   m_StripUnityVersionFromBundleBuild: 0
   m_DisableVisibleSubAssetRepresentations: 0
   m_BuiltInBundleNaming: 2
-  mBuiltInBundleCustomNaming: 84591f5a-e007-4b88-8984-737d1ce05951
+  mBuiltInBundleCustomNaming: 07f30836-3ccb-4f3f-8bba-45ba31cdfe83
   m_MonoScriptBundleNaming: 2
   m_CheckForContentUpdateRestrictionsOption: 0
-  m_MonoScriptBundleCustomNaming: 84591f5a-e007-4b88-8984-737d1ce05951
+  m_MonoScriptBundleCustomNaming: 07f30836-3ccb-4f3f-8bba-45ba31cdfe83
   m_RemoteCatalogBuildPath:
     m_Id: 0af22662dbe6f2c44ac24418b0bfe027
   m_RemoteCatalogLoadPath:
