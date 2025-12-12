@@ -1,9 +1,6 @@
 --- BoundaryZone: 경계 영역 스크립트
 --- 쓰레기가 이 영역을 벗어나면 HP 감소 처리
 
--- EventCallback 모듈 로드 (Import Scripts에서 EventCallback 추가 필요)
-local GameEvent = ImportLuaScript(EventCallback)
-
 --region Injection list
 local _INJECTED_ORDER = 0
 local function checkInject(OBJECT)
@@ -24,11 +21,9 @@ end
 --region Variables
 
 ---@type number
----@details 경계 이탈 쓰레기 수
 local lostCount = 0
 
 ---@type boolean
----@details 경계 감지 활성화 여부
 local isActive = true
 
 --endregion

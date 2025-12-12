@@ -1,8 +1,6 @@
 --- GameOverUI: 게임오버 화면 UI
 --- HP가 0이 되었을 때 표시되는 UI
-
--- EventCallback 모듈 로드 (Import Scripts에서 EventCallback 추가 필요)
-local GameEvent = ImportLuaScript(EventCallback)
+--- Retry 버튼 클릭 시 GameManager를 직접 호출
 
 --region Injection list
 local _INJECTED_ORDER = 0
@@ -32,7 +30,6 @@ GameOverTextObject = NullableInject(GameOverTextObject)
 --region Variables
 
 ---@type Button
----@details Retry 버튼 컴포넌트
 local retryButtonComp = nil
 
 --endregion
@@ -40,7 +37,6 @@ local retryButtonComp = nil
 --region Unity Lifecycle
 
 function awake()
-    -- 버튼 컴포넌트 가져오기
     retryButtonComp = RetryButton:GetComponent(typeof(CS.UnityEngine.UI.Button))
 end
 
@@ -49,17 +45,13 @@ function start()
 end
 
 function onEnable()
-    -- 버튼 이벤트 등록
     if retryButtonComp then
         retryButtonComp.onClick:AddListener(OnRetryClick)
     end
-
-    -- 게임오버 애니메이션 등
     PlayGameOverAnimation()
 end
 
 function onDisable()
-    -- 버튼 이벤트 해제
     if retryButtonComp then
         retryButtonComp.onClick:RemoveListener(OnRetryClick)
     end
@@ -69,10 +61,15 @@ end
 
 --region Button Handlers
 
----@details Retry 버튼 클릭
+---@details Retry 버튼 클릭 → GameManager 직접 호출
 function OnRetryClick()
-    -- 게임 재시작 이벤트 발생
-    GameEvent.invoke("onRetryGame")
+    local gameManagerObj = CS.UnityEngine.GameObject.Find("GameManager")
+    if gameManagerObj then
+        local gameManager = gameManagerObj:GetLuaComponent("GameManager")
+        if gameManager then
+            gameManager.OnRetryGame()
+        end
+    end
     Debug.Log("[GameOverUI] Retry clicked")
 end
 

@@ -1,8 +1,6 @@
 --- GameHUD: 게임 진행 중 HUD UI
 --- 타이머, HP, 점수, 콤보 표시
-
--- EventCallback 모듈 로드 (Import Scripts에서 EventCallback 추가 필요)
-local GameEvent = ImportLuaScript(EventCallback)
+--- GameManager, ScoreManager에서 직접 메서드 호출하여 업데이트
 
 --region Injection list
 local _INJECTED_ORDER = 0
@@ -44,31 +42,24 @@ ComboTextObject = NullableInject(ComboTextObject)
 --region Variables
 
 ---@type TMP_Text
----@details 타이머 텍스트 컴포넌트
 local timerText = nil
 
 ---@type Slider
----@details HP Slider 컴포넌트
 local hpSlider = nil
 
 ---@type TMP_Text
----@details HP 텍스트 컴포넌트
 local hpText = nil
 
 ---@type TMP_Text
----@details 점수 텍스트 컴포넌트
 local scoreText = nil
 
 ---@type TMP_Text
----@details 콤보 텍스트 컴포넌트
 local comboText = nil
 
 ---@type number
----@details 현재 HP
 local currentHP = 5
 
 ---@type number
----@details 최대 HP
 local maxHP = 5
 
 --endregion
@@ -101,7 +92,7 @@ function awake()
         comboText = ComboTextObject:GetComponent(typeof(TMP_Text))
     end
 
-    Debug.Log("[GameHUD] Awake 완료 - Slider: " .. tostring(hpSlider ~= nil) .. ", Timer: " .. tostring(timerText ~= nil))
+    Debug.Log("[GameHUD] Awake 완료")
 end
 
 function start()
@@ -109,53 +100,9 @@ function start()
     InitUI()
 end
 
-function onEnable()
-    -- 이벤트 리스너 등록
-    GameEvent.registerEvent("onTimerUpdate", OnTimerUpdate)
-    GameEvent.registerEvent("onHPUpdate", OnHPUpdate)
-    GameEvent.registerEvent("onScoreUpdate", OnScoreUpdate)
-    GameEvent.registerEvent("onComboUpdate", OnComboUpdate)
-end
-
-function onDisable()
-    -- 이벤트 리스너 해제
-    GameEvent.unregisterEvent("onTimerUpdate", OnTimerUpdate)
-    GameEvent.unregisterEvent("onHPUpdate", OnHPUpdate)
-    GameEvent.unregisterEvent("onScoreUpdate", OnScoreUpdate)
-    GameEvent.unregisterEvent("onComboUpdate", OnComboUpdate)
-end
-
 --endregion
 
---region Event Handlers
-
----@details 타이머 업데이트 이벤트 핸들러
----@param remainingTime number 남은 시간 (초)
-function OnTimerUpdate(remainingTime)
-    UpdateTimer(remainingTime)
-end
-
----@details HP 업데이트 이벤트 핸들러
----@param hp number 현재 HP
-function OnHPUpdate(hp)
-    UpdateHP(hp, maxHP)
-end
-
----@details 점수 업데이트 이벤트 핸들러
----@param score number 현재 점수
-function OnScoreUpdate(score)
-    UpdateScore(score)
-end
-
----@details 콤보 업데이트 이벤트 핸들러
----@param combo number 현재 콤보
-function OnComboUpdate(combo)
-    UpdateCombo(combo)
-end
-
---endregion
-
---region Public Functions
+--region Public Functions (외부에서 직접 호출)
 
 ---@details UI 초기화
 function InitUI()

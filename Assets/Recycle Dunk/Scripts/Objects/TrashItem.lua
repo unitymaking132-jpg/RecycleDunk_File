@@ -64,6 +64,14 @@ local spawnPosition = nil
 ---@details 아이템 표시 이름
 local displayName = ""
 
+---@type number
+---@details 풀 내 인덱스 (반환 시 사용)
+local poolIndex = -1
+
+---@type string
+---@details 현재 카테고리 (동적 설정)
+local currentCategory = "Misc"
+
 --endregion
 
 --region Unity Lifecycle
@@ -88,16 +96,18 @@ function awake()
 
     -- 기본 카테고리 설정
     if not TrashCategory then
-        TrashCategory = "GeneralGarbage"
+        TrashCategory = "Misc"
     end
+    currentCategory = TrashCategory
 end
 
 function start()
     -- 카테고리 유효성 검사
     if not IsValidCategory(TrashCategory) then
-        Debug.Log("[TrashItem] Invalid category: " .. tostring(TrashCategory) .. ", using GeneralGarbage")
-        TrashCategory = "GeneralGarbage"
+        Debug.Log("[TrashItem] Invalid category: " .. tostring(TrashCategory) .. ", using Misc")
+        TrashCategory = "Misc"
     end
+    currentCategory = TrashCategory
 
     Debug.Log("[TrashItem] Initialized - Category: " .. TrashCategory)
 end
@@ -180,26 +190,26 @@ function OnEnterTrashBin(trashBin)
     local binCategory = trashBin.GetBinCategory()
 
     -- 정답 판정
-    local isCorrect = (TrashCategory == binCategory)
+    local isCorrect = (currentCategory == binCategory)
 
     if isCorrect then
         -- 정답 처리
         if scoreManager then
-            scoreManager.OnCorrectAnswer(TrashCategory)
+            scoreManager.OnCorrectAnswer(currentCategory)
         end
         PlayCorrectEffect()
-        Debug.Log("[TrashItem] Correct! " .. TrashCategory .. " -> " .. binCategory)
+        Debug.Log("[TrashItem] Correct! " .. currentCategory .. " -> " .. binCategory)
     else
         -- 오답 처리
         if scoreManager then
-            scoreManager.OnWrongAnswer(TrashCategory, binCategory)
+            scoreManager.OnWrongAnswer(currentCategory, binCategory)
         end
         PlayWrongEffect()
-        Debug.Log("[TrashItem] Wrong! " .. TrashCategory .. " -> " .. binCategory)
+        Debug.Log("[TrashItem] Wrong! " .. currentCategory .. " -> " .. binCategory)
     end
 
-    -- 쓰레기 제거
-    DestroyTrash()
+    -- 풀로 반환
+    ReturnToPool()
 end
 
 --endregion
@@ -240,33 +250,26 @@ end
 
 --region Public Functions
 
----@details 쓰레기 아이템 초기화 (SpawnManager에서 호출)
+---@details 쓰레기 아이템 리셋 (풀에서 활성화 시 SpawnManager에서 호출)
 ---@param category string 쓰레기 카테고리
 ---@param position Vector3 스폰 위치
----@param spawnMgr SpawnManager 스폰 매니저 참조
----@param scoreMgr ScoreManager 점수 매니저 참조
-function InitTrash(category, position, spawnMgr, scoreMgr)
-    TrashCategory = category or TrashCategory or "GeneralGarbage"
+---@param index number 풀 내 인덱스
+function ResetTrash(category, position, index)
+    currentCategory = category or TrashCategory or "Misc"
+    TrashCategory = currentCategory
     spawnPosition = position or self.transform.position
+    poolIndex = index or -1
 
-    -- 매니저 참조 설정
-    if spawnMgr then
-        spawnManager = spawnMgr
-    end
-    if scoreMgr then
-        scoreManager = scoreMgr
-    end
-
+    -- 상태 초기화
     isJudged = false
     isGrabbed = false
 
-    -- 떠다니기 초기화
+    -- 떠다니기 리셋
     if floatingBehavior then
-        floatingBehavior.SetSpawnPosition(spawnPosition)
-        floatingBehavior.InitFloating(nil)
+        floatingBehavior.ResetFloating(spawnPosition, nil)
     end
 
-    Debug.Log("[TrashItem] InitTrash - Category: " .. TrashCategory)
+    Debug.Log("[TrashItem] ResetTrash - Category: " .. currentCategory .. ", PoolIndex: " .. poolIndex)
 end
 
 ---@details 카테고리 반환
@@ -287,20 +290,20 @@ function IsJudged()
     return isJudged
 end
 
----@details 쓰레기 제거
-function DestroyTrash()
+---@details 쓰레기를 풀로 반환
+function ReturnToPool()
     -- 강제 릴리즈
-    if grabbableModule and isGrabbed then
+    if grabbableModule then
         grabbableModule:Release()
+        grabbableModule:FlushInteractableCollider()
     end
 
-    -- SpawnManager에 알림
+    -- SpawnManager에 반환 알림
     if spawnManager and spawnManager.OnTrashDestroyed then
-        spawnManager.OnTrashDestroyed(self.gameObject, TrashCategory)
+        spawnManager.OnTrashDestroyed(self.gameObject, currentCategory, poolIndex)
     end
 
-    -- 오브젝트 비활성화 (풀링용) 또는 제거
-    self.gameObject:SetActive(false)
+    Debug.Log("[TrashItem] ReturnToPool - Category: " .. currentCategory .. ", PoolIndex: " .. poolIndex)
 end
 
 ---@details 경계 이탈 처리
@@ -313,13 +316,13 @@ function OnBoundaryExit()
 
     -- HP 감소
     if scoreManager then
-        scoreManager.OnTrashLost(TrashCategory)
+        scoreManager.OnTrashLost(currentCategory)
     end
 
-    Debug.Log("[TrashItem] Lost (boundary exit) - Category: " .. TrashCategory)
+    Debug.Log("[TrashItem] Lost (boundary exit) - Category: " .. currentCategory)
 
-    -- 쓰레기 제거
-    DestroyTrash()
+    -- 풀로 반환
+    ReturnToPool()
 end
 
 --endregion
@@ -335,9 +338,40 @@ function IsValidCategory(category)
         Plastic = true,
         Glass = true,
         Metal = true,
-        GeneralGarbage = true
+        Misc = true
     }
     return validCategories[category] == true
+end
+
+---@details 카테고리 설정 (풀 초기화 시 사용)
+---@param category string 카테고리
+function SetCategory(category)
+    TrashCategory = category
+    currentCategory = category
+end
+
+---@details SpawnManager 참조 설정
+---@param manager SpawnManager
+function SetSpawnManager(manager)
+    spawnManager = manager
+end
+
+---@details ScoreManager 참조 설정
+---@param manager ScoreManager
+function SetScoreManager(manager)
+    scoreManager = manager
+end
+
+---@details 풀 인덱스 반환
+---@return number
+function GetPoolIndex()
+    return poolIndex
+end
+
+---@details 풀 인덱스 설정
+---@param index number
+function SetPoolIndex(index)
+    poolIndex = index
 end
 
 --endregion

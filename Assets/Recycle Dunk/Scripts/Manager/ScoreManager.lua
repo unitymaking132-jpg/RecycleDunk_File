@@ -1,8 +1,6 @@
 --- ScoreManager: 점수 및 HP 관리
 --- 게임 내 점수, HP, 콤보, 통계를 관리하는 매니저
-
--- EventCallback 모듈 로드 (Import Scripts에서 EventCallback 추가 필요)
-local GameEvent = ImportLuaScript(EventCallback)
+--- GameHUD를 직접 호출하여 UI 업데이트
 
 --region Injection list
 local _INJECTED_ORDER = 0
@@ -23,40 +21,36 @@ end
 ---@details GameHUD 오브젝트 (UI 업데이트용)
 GameHUDObject = NullableInject(GameHUDObject)
 
+---@type GameObject
+---@details GameManager 오브젝트 (게임오버 알림용)
+GameManagerObject = NullableInject(GameManagerObject)
+
 --endregion
 
 --region Variables
 
 ---@type number
----@details 현재 점수
 local currentScore = 0
 
 ---@type number
----@details 현재 HP
 local currentHP = 5
 
 ---@type number
----@details 시작 HP
 local startHP = 5
 
 ---@type number
----@details 현재 콤보
 local currentCombo = 0
 
 ---@type number
----@details 최대 콤보
 local maxCombo = 0
 
 ---@type number
----@details 정답 횟수
 local correctCount = 0
 
 ---@type number
----@details 오답 횟수
 local wrongCount = 0
 
 ---@type table
----@details 카테고리별 오답 횟수
 local wrongCountByCategory = {
     Paper = 0,
     Plastic = 0,
@@ -66,24 +60,27 @@ local wrongCountByCategory = {
 }
 
 ---@type number
----@details 정답 시 획득 점수
 local correctScore = 100
 
 ---@type number
----@details 콤보 보너스 점수
 local comboBonus = 50
 
 ---@type GameHUD
----@details GameHUD 스크립트 참조
 local gameHUD = nil
+
+---@type GameManager
+local gameManager = nil
 
 --endregion
 
 --region Unity Lifecycle
 
 function awake()
-    if GameHUDObject ~= nil then
+    if GameHUDObject then
         gameHUD = GameHUDObject:GetLuaComponent("GameHUD")
+    end
+    if GameManagerObject then
+        gameManager = GameManagerObject:GetLuaComponent("GameManager")
     end
 end
 
@@ -144,11 +141,6 @@ function OnCorrectAnswer(category)
     currentScore = currentScore + earnedScore
     correctCount = correctCount + 1
 
-    -- 이벤트 발생
-    GameEvent.invoke("onScoreUpdate", currentScore)
-    GameEvent.invoke("onComboUpdate", currentCombo)
-    GameEvent.invoke("onCorrectAnswer", category, earnedScore)
-
     -- UI 업데이트
     UpdateUI()
 
@@ -171,11 +163,6 @@ function OnWrongAnswer(trashCategory, binCategory)
         wrongCountByCategory[trashCategory] = wrongCountByCategory[trashCategory] + 1
     end
 
-    -- 이벤트 발생
-    GameEvent.invoke("onHPUpdate", currentHP)
-    GameEvent.invoke("onComboUpdate", currentCombo)
-    GameEvent.invoke("onWrongAnswer", trashCategory, binCategory)
-
     -- UI 업데이트
     UpdateUI()
 
@@ -183,7 +170,7 @@ function OnWrongAnswer(trashCategory, binCategory)
 
     -- HP가 0이면 게임오버
     if currentHP <= 0 then
-        GameEvent.invoke("onGameOver", "HP_ZERO")
+        NotifyGameOver("HP_ZERO")
     end
 end
 
@@ -202,11 +189,6 @@ function OnTrashLost(category)
         wrongCountByCategory[category] = wrongCountByCategory[category] + 1
     end
 
-    -- 이벤트 발생
-    GameEvent.invoke("onHPUpdate", currentHP)
-    GameEvent.invoke("onComboUpdate", currentCombo)
-    GameEvent.invoke("onTrashLost", category)
-
     -- UI 업데이트
     UpdateUI()
 
@@ -214,7 +196,7 @@ function OnTrashLost(category)
 
     -- HP가 0이면 게임오버
     if currentHP <= 0 then
-        GameEvent.invoke("onGameOver", "HP_ZERO")
+        NotifyGameOver("HP_ZERO")
     end
 end
 
@@ -287,10 +269,27 @@ end
 
 ---@details UI 업데이트
 function UpdateUI()
-    if gameHUD ~= nil then
+    if gameHUD then
         gameHUD.UpdateScore(currentScore)
         gameHUD.UpdateHP(currentHP, startHP)
         gameHUD.UpdateCombo(currentCombo)
+    end
+end
+
+---@details GameManager에게 게임오버 알림
+---@param reason string 게임오버 사유
+function NotifyGameOver(reason)
+    if gameManager then
+        gameManager.OnGameOver(reason)
+    else
+        -- GameManager를 찾지 못한 경우 GameObject.Find로 시도
+        local gmObj = CS.UnityEngine.GameObject.Find("GameManager")
+        if gmObj then
+            local gm = gmObj:GetLuaComponent("GameManager")
+            if gm then
+                gm.OnGameOver(reason)
+            end
+        end
     end
 end
 

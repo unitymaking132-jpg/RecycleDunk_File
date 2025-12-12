@@ -1,8 +1,8 @@
 # Recycle Dunk - 개발 현황 추적 문서
 
 **프로젝트명**: Recycle Dunk
-**버전**: 1.0.0
-**최종 수정일**: 2025-12-08
+**버전**: 1.1.0
+**최종 수정일**: 2025-12-12
 
 ---
 
@@ -29,7 +29,7 @@
 | C-001 | GameManager.lua 작성 | 높음 | **완료** | - | 게임 상태 관리 |
 | C-002 | SpawnManager.lua 작성 | 높음 | **완료** | - | 쓰레기 스폰 로직 |
 | C-003 | ScoreManager.lua 작성 | 높음 | **완료** | - | 점수/HP 관리 |
-| C-004 | EventCallback.lua 복사 및 적용 | 높음 | **완료** | - | Angames에서 복사 |
+| C-004 | ~~EventCallback.lua 복사 및 적용~~ | - | **제거됨** | - | 직접 호출 방식으로 대체 |
 | C-005 | AudioManager.lua 작성 | 중간 | 미시작 | - | 사운드 관리 |
 | C-006 | Definitions.def.lua 작성 | 높음 | **완료** | - | 타입 정의 (5개 카테고리 포함) |
 
@@ -93,6 +93,24 @@
 ---
 
 ## 3. 개발 일지
+
+### 2025-12-12 (세션 3 - EventCallback 제거 및 아키텍처 단순화)
+
+| 시간 | 작업 내용 | 상태 |
+|------|----------|------|
+| - | **아키텍처 결정**: EventCallback 시스템 전면 제거 | 완료 |
+| - | GameHUD.lua - EventCallback 제거, HP 표시를 Slider 방식으로 변경 | 완료 |
+| - | GameManager.lua - EventCallback 제거, 직접 메서드 호출 유지 | 완료 |
+| - | ScoreManager.lua - EventCallback 제거, GameManager 직접 호출 추가 | 완료 |
+| - | SpawnManager.lua - EventCallback import 제거 | 완료 |
+| - | TrashBin.lua - EventCallback 제거, OnTrashEntered() 메서드 추가 | 완료 |
+| - | BoundaryZone.lua - EventCallback import 제거 | 완료 |
+| - | GameOverUI.lua - EventCallback 제거 → GameObject.Find + GetLuaComponent | 완료 |
+| - | ResultUIManager.lua - EventCallback 제거 → GameObject.Find + GetLuaComponent | 완료 |
+| - | SlideUIManager.lua - 미사용 EventCallback import 제거 | 완료 |
+| - | 설계문서 업데이트 - 스크립트 통신 패턴 섹션 전면 개정 | 완료 |
+
+**결정 사유**: EventCallback의 Import Scripts 방식이 각 스크립트별로 별도 인스턴스를 생성하여 이벤트 공유가 안 되는 문제. 직접 호출 방식이 더 단순하고 디버깅이 용이함.
 
 ### 2025-12-08 (세션 2 - UI 통합 및 테스트)
 
@@ -189,10 +207,11 @@
 
 | 파일명 | 경로 | 용도 |
 |--------|------|------|
-| EventCallback.lua | Angames/Scripts/Utils/ | 이벤트 시스템 복사 |
 | IStep.lua | Angames/Scripts/Tutorial/Interface/ | 게임 흐름 참고 |
 | RecipeGameManager.lua | Angames/Scripts/Manager/ | 게임 매니저 패턴 참고 |
 | CookUIManager.lua | Angames/Scripts/UI/ | UI 매니저 패턴 참고 |
+
+> **Note**: EventCallback.lua는 더 이상 사용하지 않음 - 직접 호출 방식 채택
 
 ### VIVEN SDK 문서
 
@@ -207,6 +226,7 @@
 
 | 버전 | 날짜 | 변경 내용 | 작성자 |
 |------|------|----------|--------|
+| 1.1.0 | 2025-12-12 | EventCallback 제거, 직접 호출 방식으로 전환 | Claude |
 | 1.0.0 | 2025-12-08 | 최초 작성 | Claude |
 
 ---
@@ -220,16 +240,20 @@
 - [x] 모든 Object 스크립트 구현
 - [x] 모든 UI 스크립트 구현
 - [x] UI 플로우 연결 (Guide → Landing → LevelSelect → Playing)
-- [x] EventCallback → GameObject.Find 직접 호출 방식으로 변경
+- [x] **EventCallback 전면 제거** - 직접 호출 방식으로 전환 완료
+- [x] GameHUD HP 표시 Slider 방식으로 변경
 
 ### 다음 작업 (Unity Editor에서)
 - [ ] 쓰레기 프리팹 생성 및 SpawnManager에 연결
 - [ ] 쓰레기통 프리팹 생성 및 배치
 - [ ] SpawnZone BoxCollider 설정
-- [ ] GameHUD UI 요소 연결 (타이머, HP바, 점수)
+- [ ] GameHUD UI 요소 연결 (타이머, HP Slider, 점수)
 - [ ] GameOverUI, ResultUI 버튼 연결
 - [ ] 실제 게임플레이 테스트 (잡기/던지기/판정)
 
-### 블로커 (해결 완료)
-- [x] EventCallback 이슈: Import Scripts 방식이 각 스크립트별로 별도 인스턴스 생성
-  - **해결**: GameObject.Find()로 GameManager를 직접 찾아서 메서드 호출하는 방식으로 변경
+### 아키텍처 결정 사항
+- **EventCallback 미사용**: 복잡성 대비 이점 없음, 직접 호출 방식이 더 단순하고 디버깅 용이
+- **통신 패턴**:
+  - UI → Manager: `GameObject.Find()` + `GetLuaComponent()`
+  - Manager → Manager: Injection + `GetLuaComponent()`
+  - Manager → UI: 직접 메서드 호출

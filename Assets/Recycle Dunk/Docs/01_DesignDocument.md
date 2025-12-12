@@ -3,8 +3,8 @@
 **프로젝트명**: Recycle Dunk
 **플랫폼**: VR (VIVEN Platform) / PC
 **SDK**: VIVEN SDK (Lua Scripting)
-**버전**: 1.0.0
-**최종 수정일**: 2025-12-08
+**버전**: 1.1.0
+**최종 수정일**: 2025-12-12
 
 ---
 
@@ -336,7 +336,6 @@ Assets/Recycle Dunk/
 │   │   └── ResultUIManager.lua    # 결과 UI (시간 종료)
 │   │
 │   └── Utils/                     # 유틸리티
-│       ├── EventCallback.lua      # 이벤트 시스템
 │       └── Definitions.def.lua    # 타입 정의
 │
 ├── Prefabs/                       # 프리팹
@@ -384,33 +383,63 @@ BoundaryZone
 
 ## 7. 스크립트 간 통신 패턴
 
-### 7.1 직접 호출 방식 (권장)
+### 7.1 직접 호출 방식 (유일한 방식)
 
-UI 스크립트에서 GameManager를 직접 찾아서 메서드를 호출하는 방식을 사용합니다.
+모든 스크립트 간 통신은 **직접 메서드 호출** 방식을 사용합니다.
+EventCallback 시스템은 복잡성 대비 이점이 없어 **사용하지 않습니다**.
+
+#### UI → Manager 호출 (GameObject.Find 방식)
 
 ```lua
--- UI 스크립트에서 GameManager 찾기
-function GetGameManager()
+-- UI 스크립트에서 GameManager 직접 호출
+function OnRetryClick()
     local gameManagerObj = CS.UnityEngine.GameObject.Find("GameManager")
     if gameManagerObj then
-        return gameManagerObj:GetLuaComponent("GameManager")
-    end
-    return nil
-end
-
--- 버튼 클릭 시 GameManager 메서드 직접 호출
-function OnButtonClick()
-    local gameManager = GetGameManager()
-    if gameManager then
-        gameManager.OnGuideComplete()  -- 직접 호출
+        local gameManager = gameManagerObj:GetLuaComponent("GameManager")
+        if gameManager then
+            gameManager.OnRetryGame()
+        end
     end
 end
 ```
 
+#### Manager → Manager 호출 (Injection 방식)
+
+```lua
+-- Injection을 통해 참조 획득
+---@type GameObject
+GameManagerObject = NullableInject(GameManagerObject)
+
+-- awake()에서 컴포넌트 캐싱
+function awake()
+    if GameManagerObject then
+        gameManager = GameManagerObject:GetLuaComponent("GameManager")
+    end
+end
+
+-- 직접 메서드 호출
+function NotifyGameOver(reason)
+    if gameManager then
+        gameManager.OnGameOver(reason)
+    end
+end
+```
+
+#### Manager → UI 호출 (직접 메서드 호출)
+
+```lua
+-- GameManager에서 GameHUD 직접 호출
+if gameHUD then
+    gameHUD.UpdateScore(currentScore)
+    gameHUD.UpdateHP(currentHP, startHP)
+end
+```
+
 **장점**:
-- EventCallback의 인스턴스 분리 문제 회피
-- 명확한 호출 흐름
-- 디버깅 용이
+- 단순하고 명확한 호출 흐름
+- 디버깅 용이 (스택 트레이스 추적 가능)
+- Import Scripts 인스턴스 분리 문제 없음
+- 코드 복잡도 감소
 
 ### 7.2 GameManager 공개 메서드
 
@@ -422,18 +451,31 @@ end
 | `OnLevelSelected(difficulty)` | LevelSelectUI | 난이도 선택 → 게임 시작 |
 | `OnGoToMain()` | LevelSelectUI, ResultUI | 뒤로가기 → Landing 상태로 전환 |
 | `OnRetryGame()` | GameOverUI, ResultUI | 재시작 → 게임 다시 시작 |
+| `OnGameOver(reason)` | ScoreManager | HP 0 → 게임오버 처리 |
 
-### 7.3 내부 이벤트 (EventCallback - 선택적 사용)
+### 7.3 ScoreManager 공개 메서드
 
-ScoreManager, SpawnManager 등 내부 시스템 간 통신에는 EventCallback을 사용할 수 있습니다.
+| 메서드명 | 호출 위치 | 설명 |
+|---------|----------|------|
+| `OnCorrectAnswer(category)` | TrashItem | 올바른 분류 → 점수 증가 |
+| `OnWrongAnswer(trashCategory, binCategory)` | TrashItem | 잘못된 분류 → HP 감소 |
+| `OnTrashLost(category)` | TrashItem | 경계 이탈 → HP 감소 |
 
-| 이벤트명 | 발생 시점 | 파라미터 |
-|---------|----------|---------|
-| `onScoreUpdate` | 점수 변경 | newScore: number |
-| `onHPUpdate` | HP 변경 | newHP: number |
-| `onComboUpdate` | 콤보 변경 | combo: number |
-| `onTrashSpawn` | 쓰레기 스폰 | trashItem: GameObject |
-| `onTrashDestroyed` | 쓰레기 제거 | trashItem: GameObject |
+### 7.4 SpawnManager 공개 메서드
+
+| 메서드명 | 호출 위치 | 설명 |
+|---------|----------|------|
+| `InitSpawn(settings)` | GameManager | 스폰 설정 초기화 |
+| `StartSpawning()` | GameManager | 스폰 시작 |
+| `StopSpawning()` | GameManager | 스폰 정지 |
+| `ClearAllTrash()` | GameManager | 모든 쓰레기 제거 |
+| `OnTrashDestroyed(trashObject)` | TrashItem | 쓰레기 제거 알림 |
+
+### 7.5 TrashBin 공개 메서드
+
+| 메서드명 | 호출 위치 | 설명 |
+|---------|----------|------|
+| `OnTrashEntered(trashCategory)` | TrashItem | 쓰레기 진입 판정 (boolean 반환) |
 
 ---
 

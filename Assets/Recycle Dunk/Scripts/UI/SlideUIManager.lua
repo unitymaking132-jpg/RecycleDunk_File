@@ -1,8 +1,6 @@
 --- SlideUIManager: 게임 가이드 슬라이드 UI
 --- How to Play 슬라이드 네비게이션
-
--- EventCallback 모듈 로드 (Import Scripts에서 EventCallback 추가 필요)
-local GameEvent = ImportLuaScript(EventCallback)
+--- Complete 버튼 클릭 시 GameManager를 직접 호출
 
 --region Injection list
 local _INJECTED_ORDER = 0

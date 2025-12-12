@@ -1,8 +1,6 @@
 --- GameManager: 메인 게임 로직 관리
 --- 게임 상태, 타이머, 게임 흐름을 관리하는 핵심 매니저
-
--- EventCallback 모듈 로드 (Import Scripts에서 EventCallback 추가 필요)
-local GameEvent = ImportLuaScript(EventCallback)
+--- UI 스크립트들이 직접 이 매니저의 메서드를 호출함
 
 --region Injection list
 local _INJECTED_ORDER = 0
@@ -60,27 +58,21 @@ local util = require 'xlua.util'
 ---@alias GameState "Idle"|"Guide"|"Landing"|"LevelSelect"|"Playing"|"Paused"|"GameOver"|"TimeUp"|"Result"
 
 ---@type GameState
----@details 현재 게임 상태
 local currentState = "Idle"
 
 ---@type string
----@details 현재 난이도 ("Easy" | "Hard")
 local currentDifficulty = "Easy"
 
 ---@type number
----@details 게임 남은 시간 (초)
 local remainingTime = 300
 
 ---@type number
----@details 게임 총 시간 (초)
 local totalGameTime = 300
 
 ---@type boolean
----@details 타이머 실행 중 여부
 local isTimerRunning = false
 
 ---@type table
----@details 난이도별 설정
 local difficultySettings = {
     Easy = {
         gameTime = 300,
@@ -107,11 +99,9 @@ local scoreManager = nil
 local spawnManager = nil
 
 ---@type table
----@details UI 매니저 참조들
 local uiManagers = {}
 
 ---@type any
----@details 타이머 코루틴 참조
 local timerCoroutine = nil
 
 --endregion
@@ -127,7 +117,7 @@ function awake()
         spawnManager = SpawnManagerObject:GetLuaComponent("SpawnManager")
     end
 
-    -- UI 매니저 참조 가져오기 (각 Panel에서 Lua 컴포넌트 가져오기)
+    -- UI 매니저 참조 가져오기
     if SlideUIPanel then
         uiManagers.slideUI = SlideUIPanel:GetLuaComponent("SlideUIManager")
     end
@@ -149,9 +139,6 @@ function awake()
 end
 
 function start()
-    -- 이벤트 리스너 등록
-    RegisterEventListeners()
-
     -- 모든 UI 먼저 숨기기
     HideAllUI()
 
@@ -161,75 +148,55 @@ function start()
     Debug.Log("[GameManager] Initialized - Starting with Guide UI")
 end
 
-function onEnable()
-    RegisterEventListeners()
-end
-
-function onDisable()
-    UnregisterEventListeners()
-end
-
 --endregion
 
---region Event Listeners
+--region Public Methods (UI에서 직접 호출)
 
-function RegisterEventListeners()
-    Debug.Log("[GameManager] Registering event listeners...")
-    GameEvent.registerEvent("onGameOver", OnGameOverEvent)
-    GameEvent.registerEvent("onGuideComplete", OnGuideComplete)
-    GameEvent.registerEvent("onGoToGuide", OnGoToGuide)
-    GameEvent.registerEvent("onLevelSelected", OnLevelSelected)
-    GameEvent.registerEvent("onRetryGame", OnRetryGame)
-    GameEvent.registerEvent("onGoToMain", OnGoToMain)
-    Debug.Log("[GameManager] Event listeners registered")
-end
-
-function UnregisterEventListeners()
-    GameEvent.unregisterEvent("onGameOver", OnGameOverEvent)
-    GameEvent.unregisterEvent("onGuideComplete", OnGuideComplete)
-    GameEvent.unregisterEvent("onGoToGuide", OnGoToGuide)
-    GameEvent.unregisterEvent("onLevelSelected", OnLevelSelected)
-    GameEvent.unregisterEvent("onRetryGame", OnRetryGame)
-    GameEvent.unregisterEvent("onGoToMain", OnGoToMain)
-end
-
----@details 게임오버 이벤트 핸들러
----@param reason string 게임오버 사유
-function OnGameOverEvent(reason)
-    if reason == "HP_ZERO" then
-        ChangeState("GameOver")
-    end
-end
-
----@details 가이드 완료 이벤트 핸들러
+---@details 가이드 완료 → Landing으로 이동
 function OnGuideComplete()
-    Debug.Log("[GameManager] OnGuideComplete received!")
+    Debug.Log("[GameManager] OnGuideComplete called")
     ChangeState("Landing")
 end
 
----@details 가이드로 이동 이벤트 핸들러
+---@details How to Play 클릭 → Guide로 이동
 function OnGoToGuide()
     Debug.Log("[GameManager] OnGoToGuide called")
     ChangeState("Guide")
 end
 
----@details 레벨 선택 이벤트 핸들러
+---@details Game Start 클릭 → LevelSelect로 이동
+function GoToLevelSelect()
+    Debug.Log("[GameManager] GoToLevelSelect called")
+    ChangeState("LevelSelect")
+end
+
+---@details 레벨 선택 완료 → 게임 시작
 ---@param difficulty string 선택한 난이도
 function OnLevelSelected(difficulty)
-    Debug.Log("[GameManager] OnLevelSelected called: " .. tostring(difficulty))
+    Debug.Log("[GameManager] OnLevelSelected: " .. tostring(difficulty))
     currentDifficulty = difficulty or "Easy"
     StartGame()
 end
 
----@details 재시작 이벤트 핸들러
-function OnRetryGame()
-    StartGame()
-end
-
----@details 메인으로 이동 이벤트 핸들러
+---@details 뒤로가기 → Landing으로 이동
 function OnGoToMain()
     Debug.Log("[GameManager] OnGoToMain called")
     ChangeState("Landing")
+end
+
+---@details 재시작
+function OnRetryGame()
+    Debug.Log("[GameManager] OnRetryGame called")
+    StartGame()
+end
+
+---@details 게임오버 처리 (ScoreManager에서 호출)
+---@param reason string 게임오버 사유
+function OnGameOver(reason)
+    Debug.Log("[GameManager] OnGameOver: " .. tostring(reason))
+    if reason == "HP_ZERO" then
+        ChangeState("GameOver")
+    end
 end
 
 --endregion
@@ -242,7 +209,7 @@ function ChangeState(newState)
     local previousState = currentState
     currentState = newState
 
-    Debug.Log("[GameManager] State changed: " .. previousState .. " -> " .. newState)
+    Debug.Log("[GameManager] State: " .. previousState .. " -> " .. newState)
 
     -- 모든 UI 비활성화
     HideAllUI()
@@ -257,7 +224,6 @@ function ChangeState(newState)
     elseif newState == "Playing" then
         ShowUI("gameHUD")
     elseif newState == "Paused" then
-        -- 일시정지 UI 표시 (GameHUD 유지)
         ShowUI("gameHUD")
     elseif newState == "GameOver" then
         StopGame()
@@ -273,9 +239,6 @@ function ChangeState(newState)
     elseif newState == "Result" then
         ShowUI("resultUI")
     end
-
-    -- 이벤트 발생
-    GameEvent.invoke("onStateChanged", newState, previousState)
 end
 
 ---@details 현재 상태 반환
@@ -306,11 +269,11 @@ function StartGame()
 
     -- SpawnManager 초기화 및 시작
     if spawnManager then
-        Debug.Log("[GameManager] SpawnManager found, calling InitSpawn")
+        Debug.Log("[GameManager] Starting SpawnManager")
         spawnManager.InitSpawn(settings)
         spawnManager.StartSpawning()
     else
-        Debug.Log("[GameManager] WARNING: SpawnManager is nil! Check SpawnManagerObject injection")
+        Debug.LogWarning("[GameManager] SpawnManager is nil!")
     end
 
     -- 상태 변경
@@ -319,18 +282,13 @@ function StartGame()
     -- 타이머 시작
     StartTimer()
 
-    -- 이벤트 발생
-    GameEvent.invoke("onGameStart", currentDifficulty)
-
     Debug.Log("[GameManager] Game started - Difficulty: " .. currentDifficulty)
 end
 
 ---@details 게임 정지
 function StopGame()
-    -- 타이머 정지
     StopTimer()
 
-    -- SpawnManager 정지
     if spawnManager then
         spawnManager.StopSpawning()
     end
@@ -347,12 +305,10 @@ function PauseGame()
     isTimerRunning = false
     ChangeState("Paused")
 
-    -- SpawnManager 일시정지
     if spawnManager then
         spawnManager.PauseSpawning()
     end
 
-    GameEvent.invoke("onGamePause")
     Debug.Log("[GameManager] Game paused")
 end
 
@@ -365,23 +321,11 @@ function ResumeGame()
     ChangeState("Playing")
     isTimerRunning = true
 
-    -- SpawnManager 재개
     if spawnManager then
         spawnManager.ResumeSpawning()
     end
 
-    GameEvent.invoke("onGameResume")
     Debug.Log("[GameManager] Game resumed")
-end
-
----@details 레벨 선택 화면으로 이동
-function GoToLevelSelect()
-    ChangeState("LevelSelect")
-end
-
----@details How to Play 화면으로 이동
-function GoToGuide()
-    ChangeState("Guide")
 end
 
 --endregion
@@ -403,13 +347,10 @@ function StartTimer()
             if isTimerRunning then
                 remainingTime = remainingTime - 1
 
-                -- UI 업데이트
+                -- GameHUD 직접 업데이트
                 if uiManagers.gameHUD then
                     uiManagers.gameHUD.UpdateTimer(remainingTime)
                 end
-
-                -- 이벤트 발생
-                GameEvent.invoke("onTimerUpdate", remainingTime)
             end
         end
 

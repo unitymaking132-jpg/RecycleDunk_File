@@ -1,8 +1,6 @@
 --- ResultUIManager: 게임 결과 화면 UI
 --- 시간 종료 후 점수, 정확도, 가장 많이 틀린 카테고리 표시
-
--- EventCallback 모듈 로드 (Import Scripts에서 EventCallback 추가 필요)
-local GameEvent = ImportLuaScript(EventCallback)
+--- Retry 버튼 클릭 시 GameManager를 직접 호출
 
 --region Injection list
 local _INJECTED_ORDER = 0
@@ -108,10 +106,15 @@ end
 
 --region Button Handlers
 
----@details Retry 버튼 클릭
+---@details Retry 버튼 클릭 → GameManager 직접 호출
 function OnRetryClick()
-    -- 게임 재시작 이벤트 발생
-    GameEvent.invoke("onRetryGame")
+    local gameManagerObj = CS.UnityEngine.GameObject.Find("GameManager")
+    if gameManagerObj then
+        local gameManager = gameManagerObj:GetLuaComponent("GameManager")
+        if gameManager then
+            gameManager.OnRetryGame()
+        end
+    end
     Debug.Log("[ResultUIManager] Retry clicked")
 end
 

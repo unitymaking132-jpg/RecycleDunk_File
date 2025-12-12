@@ -1,8 +1,6 @@
 --- TrashBin: 쓰레기통 스크립트
 --- 쓰레기 아이템을 받아서 판정하는 쓰레기통
-
--- EventCallback 모듈 로드 (Import Scripts에서 EventCallback 추가 필요)
-local GameEvent = ImportLuaScript(EventCallback)
+--- TrashItem이 직접 이 스크립트의 메서드를 호출
 
 --region Injection list
 local _INJECTED_ORDER = 0
@@ -36,23 +34,18 @@ WrongEffectObject = NullableInject(WrongEffectObject)
 --region Variables
 
 ---@type number
----@details 받은 쓰레기 개수
 local receivedCount = 0
 
 ---@type number
----@details 정답 개수
 local correctCount = 0
 
 ---@type number
----@details 오답 개수 (잘못 들어온 것)
 local wrongCount = 0
 
 ---@type ParticleSystem
----@details 정답 파티클 시스템
 local correctParticle = nil
 
 ---@type ParticleSystem
----@details 오답 파티클 시스템
 local wrongParticle = nil
 
 --endregion
@@ -82,31 +75,17 @@ function start()
     Debug.Log("[TrashBin] Initialized - Category: " .. BinCategory)
 end
 
-function onEnable()
-    -- 이벤트 리스너 등록
-    GameEvent.registerEvent("onTrashBinned", OnTrashBinnedEvent)
-end
-
-function onDisable()
-    -- 이벤트 리스너 해제
-    GameEvent.unregisterEvent("onTrashBinned", OnTrashBinnedEvent)
-end
-
 --endregion
 
---region Event Handlers
+--region Public Functions (TrashItem에서 직접 호출)
 
----@details 쓰레기 판정 이벤트 핸들러
----@param isCorrect boolean 정답 여부
+---@details 쓰레기가 이 쓰레기통에 들어왔을 때 처리
 ---@param trashCategory string 쓰레기 카테고리
----@param binCategory string 쓰레기통 카테고리
-function OnTrashBinnedEvent(isCorrect, trashCategory, binCategory)
-    -- 이 쓰레기통에 들어온 경우만 처리
-    if binCategory ~= BinCategory then
-        return
-    end
-
+---@return boolean 정답 여부
+function OnTrashEntered(trashCategory)
     receivedCount = receivedCount + 1
+
+    local isCorrect = (trashCategory == BinCategory)
 
     if isCorrect then
         correctCount = correctCount + 1
@@ -115,39 +94,11 @@ function OnTrashBinnedEvent(isCorrect, trashCategory, binCategory)
         wrongCount = wrongCount + 1
         PlayWrongEffect()
     end
+
+    Debug.Log("[TrashBin] Trash entered - Category: " .. trashCategory .. ", IsCorrect: " .. tostring(isCorrect))
+
+    return isCorrect
 end
-
---endregion
-
---region Effects
-
----@details 정답 이펙트 재생
-function PlayCorrectEffect()
-    if CorrectEffectObject then
-        CorrectEffectObject:SetActive(true)
-        if correctParticle then
-            correctParticle:Play()
-        end
-    end
-
-    -- TODO: 사운드 재생
-end
-
----@details 오답 이펙트 재생
-function PlayWrongEffect()
-    if WrongEffectObject then
-        WrongEffectObject:SetActive(true)
-        if wrongParticle then
-            wrongParticle:Play()
-        end
-    end
-
-    -- TODO: 사운드 재생
-end
-
---endregion
-
---region Public Functions
 
 ---@details 쓰레기통 카테고리 반환
 ---@return string
@@ -185,6 +136,32 @@ end
 ---@return boolean
 function IsCorrectCategory(trashCategory)
     return trashCategory == BinCategory
+end
+
+--endregion
+
+--region Effects
+
+---@details 정답 이펙트 재생
+function PlayCorrectEffect()
+    if CorrectEffectObject then
+        CorrectEffectObject:SetActive(true)
+        if correctParticle then
+            correctParticle:Play()
+        end
+    end
+    -- TODO: 사운드 재생
+end
+
+---@details 오답 이펙트 재생
+function PlayWrongEffect()
+    if WrongEffectObject then
+        WrongEffectObject:SetActive(true)
+        if wrongParticle then
+            wrongParticle:Play()
+        end
+    end
+    -- TODO: 사운드 재생
 end
 
 --endregion

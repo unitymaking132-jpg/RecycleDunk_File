@@ -193,4 +193,34 @@ function GetSpawnPosition()
     return spawnPosition
 end
 
+---@details 떠다니기 완전 리셋 (풀에서 재사용 시 호출)
+---@param position Vector3 새 스폰 위치
+---@param settings table|nil 설정 (nil이면 기본값 유지)
+function ResetFloating(position, settings)
+    -- 스폰 위치 설정
+    spawnPosition = position or self.transform.position
+
+    -- 설정 적용
+    if settings then
+        noiseScale = settings.noiseScale or 0.5
+        noiseSpeed = settings.noiseSpeed or 0.3
+        floatRange = settings.floatRange or 0.1
+        rotationSpeed = settings.rotationSpeed or 5
+    end
+
+    -- 노이즈 오프셋 재생성 (각 오브젝트마다 다른 움직임)
+    noiseOffsetX = math.random() * 100
+    noiseOffsetY = math.random() * 100
+    noiseOffsetZ = math.random() * 100
+
+    -- 현재 오프셋 초기화
+    currentOffset = Vector3.zero
+
+    -- 상태 초기화
+    isFloating = true
+    isGrabbed = false
+
+    Debug.Log("[FloatingBehavior] ResetFloating at " .. tostring(spawnPosition))
+end
+
 --endregion

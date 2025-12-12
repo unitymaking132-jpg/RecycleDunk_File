@@ -1,8 +1,8 @@
---- SpawnManager: 쓰레기 스폰 관리
---- 쓰레기 아이템의 생성, 위치, 타이밍을 관리
---- BoxCollider의 bounds를 이용한 랜덤 스폰
+--- SpawnManager: 쓰레기 스폰 관리 (Object Pooling 방식)
+--- 씬에 미리 배치된 오브젝트를 풀에서 가져와 재사용
+--- VIVEN SDK에서 동적 VObject Instantiate가 불가능하므로 풀링 방식 사용
 
--- EventCallback 모듈 로드 (Import Scripts에서 EventCallback 추가 필요)
+-- EventCallback 모듈 로드
 local GameEvent = ImportLuaScript(EventCallback)
 
 --region Injection list
@@ -20,41 +20,30 @@ local function NullableInject(OBJECT)
     return OBJECT
 end
 
+-- 풀 부모 오브젝트 (카테고리별)
+---@type GameObject
+---@details Paper 풀 부모 오브젝트
+PaperPool = NullableInject(PaperPool)
+
+---@type GameObject
+---@details Plastic 풀 부모 오브젝트
+PlasticPool = NullableInject(PlasticPool)
+
+---@type GameObject
+---@details Glass 풀 부모 오브젝트
+GlassPool = NullableInject(GlassPool)
+
+---@type GameObject
+---@details Metal 풀 부모 오브젝트
+MetalPool = NullableInject(MetalPool)
+
+---@type GameObject
+---@details Misc(일반쓰레기) 풀 부모 오브젝트
+MiscPool = NullableInject(MiscPool)
+
 ---@type GameObject
 ---@details 스폰 영역 오브젝트 (BoxCollider 포함)
 SpawnZoneObject = NullableInject(SpawnZoneObject)
-
--- Paper 프리팹 (개별 주입)
----@type GameObject
-PaperPrefab1 = NullableInject(PaperPrefab1)
----@type GameObject
-PaperPrefab2 = NullableInject(PaperPrefab2)
----@type GameObject
-PaperPrefab3 = NullableInject(PaperPrefab3)
-
--- Plastic 프리팹 (개별 주입)
----@type GameObject
-PlasticPrefab1 = NullableInject(PlasticPrefab1)
----@type GameObject
-PlasticPrefab2 = NullableInject(PlasticPrefab2)
----@type GameObject
-PlasticPrefab3 = NullableInject(PlasticPrefab3)
-
--- Glass 프리팹 (개별 주입)
----@type GameObject
-GlassPrefab1 = NullableInject(GlassPrefab1)
----@type GameObject
-GlassPrefab2 = NullableInject(GlassPrefab2)
-
--- Metal 프리팹 (개별 주입)
----@type GameObject
-MetalPrefab1 = NullableInject(MetalPrefab1)
----@type GameObject
-MetalPrefab2 = NullableInject(MetalPrefab2)
-
--- GeneralGarbage 프리팹 (개별 주입)
----@type GameObject
-GeneralGarbagePrefab1 = NullableInject(GeneralGarbagePrefab1)
 
 ---@type GameObject
 ---@details ScoreManager 오브젝트
@@ -83,12 +72,8 @@ local isSpawning = false
 local isPaused = false
 
 ---@type table
----@details 활성화된 쓰레기 아이템 목록
+---@details 활성화된 쓰레기 아이템 목록 {object, category, poolIndex}
 local activeTrashItems = {}
-
----@type table
----@details 카테고리별 프리팹 테이블
-local prefabsByCategory = {}
 
 ---@type BoxCollider
 ---@details 스폰 영역 콜라이더
@@ -112,36 +97,65 @@ local scoreManager = nil
 
 --endregion
 
+--region Pool Variables
+
+---@type table<string, table>
+---@details 카테고리별 풀 테이블 {available = {인덱스...}, inUse = {인덱스...}}
+local pools = {
+    Paper = { available = {}, inUse = {} },
+    Plastic = { available = {}, inUse = {} },
+    Glass = { available = {}, inUse = {} },
+    Metal = { available = {}, inUse = {} },
+    Misc = { available = {}, inUse = {} }
+}
+
+---@type table<string, table>
+---@details 카테고리별 오브젝트 테이블 (GameObject 배열)
+local poolObjects = {
+    Paper = {},
+    Plastic = {},
+    Glass = {},
+    Metal = {},
+    Misc = {}
+}
+
+---@type table<string, table>
+---@details 카테고리별 스크립트 테이블 (TrashItem 스크립트 배열)
+local poolScripts = {
+    Paper = {},
+    Plastic = {},
+    Glass = {},
+    Metal = {},
+    Misc = {}
+}
+
+---@type table<string, table>
+---@details 카테고리별 초기 위치/회전 저장 테이블
+local poolInitialPose = {
+    Paper = {},
+    Plastic = {},
+    Glass = {},
+    Metal = {},
+    Misc = {}
+}
+
+---@type table<string, GameObject>
+---@details 카테고리별 풀 부모 매핑
+local poolParents = {}
+
+--endregion
+
 --region Unity Lifecycle
 
----@details 개별 프리팹들을 테이블로 수집 (nil 제외)
----@param ... GameObject 프리팹들
----@return table
-local function CollectPrefabs(...)
-    local result = {}
-    for i = 1, select("#", ...) do
-        local prefab = select(i, ...)
-        if prefab then
-            table.insert(result, prefab)
-        end
-    end
-    return result
-end
-
 function awake()
-    -- 카테고리별 프리팹 테이블 구성 (개별 주입된 프리팹들 수집)
-    prefabsByCategory = {
-        Paper = CollectPrefabs(PaperPrefab1, PaperPrefab2, PaperPrefab3),
-        Plastic = CollectPrefabs(PlasticPrefab1, PlasticPrefab2, PlasticPrefab3),
-        Glass = CollectPrefabs(GlassPrefab1, GlassPrefab2),
-        Metal = CollectPrefabs(MetalPrefab1, MetalPrefab2),
-        GeneralGarbage = CollectPrefabs(GeneralGarbagePrefab1)
+    -- 풀 부모 매핑 설정
+    poolParents = {
+        Paper = PaperPool,
+        Plastic = PlasticPool,
+        Glass = GlassPool,
+        Metal = MetalPool,
+        Misc = MiscPool
     }
-
-    -- 로드된 프리팹 수 로깅
-    for category, prefabs in pairs(prefabsByCategory) do
-        Debug.Log("[SpawnManager] " .. category .. " prefabs loaded: " .. #prefabs)
-    end
 
     -- 스폰 영역 BoxCollider에서 bounds 가져오기
     if SpawnZoneObject then
@@ -161,7 +175,10 @@ function awake()
         scoreManager = ScoreManagerObject:GetLuaComponent("ScoreManager")
     end
 
-    Debug.Log("[SpawnManager] Initialized")
+    -- 풀 초기화
+    InitializePools()
+
+    Debug.Log("[SpawnManager] Initialized with Object Pooling")
 end
 
 function start()
@@ -183,24 +200,204 @@ end
 --region Event Listeners
 
 function RegisterEventListeners()
-    GameEvent.registerEvent("onTrashDestroyed", OnTrashDestroyed)
+    GameEvent.registerEvent("onTrashDestroyed", OnTrashDestroyedEvent)
 end
 
 function UnregisterEventListeners()
-    GameEvent.unregisterEvent("onTrashDestroyed", OnTrashDestroyed)
+    GameEvent.unregisterEvent("onTrashDestroyed", OnTrashDestroyedEvent)
 end
 
----@details 쓰레기 제거 이벤트 핸들러
+---@details 쓰레기 제거 이벤트 핸들러 (EventCallback에서 호출)
 ---@param trashObject GameObject 제거된 쓰레기 오브젝트
 ---@param category string 카테고리
-function OnTrashDestroyed(trashObject, category)
-    -- 활성 목록에서 제거
+function OnTrashDestroyedEvent(trashObject, category)
+    -- activeTrashItems에서 제거
     for i = #activeTrashItems, 1, -1 do
-        if activeTrashItems[i] == trashObject then
+        if activeTrashItems[i].object == trashObject then
             table.remove(activeTrashItems, i)
             break
         end
     end
+end
+
+--endregion
+
+--region Pool Management
+
+---@details 자식 오브젝트 수집 유틸리티 함수
+---@param parentObj GameObject 부모 오브젝트
+---@param objTable table 오브젝트 저장 테이블
+---@param scriptTable table 스크립트 저장 테이블
+---@param scriptName string 스크립트 이름
+function GetChildren(parentObj, objTable, scriptTable, scriptName)
+    -- 테이블 초기화
+    for i = 1, #objTable do objTable[i] = nil end
+    if scriptTable then
+        for i = 1, #scriptTable do scriptTable[i] = nil end
+    end
+
+    -- 자식 수집
+    for i = 0, parentObj.transform.childCount - 1 do
+        local child = parentObj.transform:GetChild(i).gameObject
+        objTable[#objTable + 1] = child
+
+        if scriptTable and scriptName then
+            local script = child:GetLuaComponent(scriptName)
+            scriptTable[#scriptTable + 1] = script
+        end
+    end
+end
+
+---@details 모든 풀 초기화
+function InitializePools()
+    for category, poolParent in pairs(poolParents) do
+        if poolParent then
+            InitializePool(category, poolParent)
+        else
+            Debug.Log("[SpawnManager] Pool parent not found for: " .. category)
+        end
+    end
+
+    Debug.Log("[SpawnManager] All pools initialized")
+end
+
+---@details 단일 카테고리 풀 초기화
+---@param category string 카테고리명
+---@param poolParent GameObject 풀 부모 오브젝트
+function InitializePool(category, poolParent)
+    if not poolParent then
+        Debug.Log("[SpawnManager] Pool parent is nil for: " .. category)
+        return
+    end
+
+    -- 기존 테이블 초기화
+    poolObjects[category] = {}
+    poolScripts[category] = {}
+    poolInitialPose[category] = {}
+    pools[category].available = {}
+    pools[category].inUse = {}
+
+    -- GetChildren으로 자식 오브젝트 수집
+    GetChildren(poolParent, poolObjects[category], poolScripts[category], "TrashItem")
+
+    -- 초기 위치/회전 저장 및 풀에 추가
+    for i, obj in ipairs(poolObjects[category]) do
+        -- 초기 위치 저장
+        poolInitialPose[category][i] = {
+            Pos = obj.transform.position,
+            Rot = obj.transform.rotation
+        }
+
+        -- available 풀에 추가
+        table.insert(pools[category].available, i)
+
+        -- TrashItem 스크립트 초기화
+        if poolScripts[category][i] then
+            poolScripts[category][i].SetCategory(category)
+            poolScripts[category][i].SetSpawnManager(self)
+            poolScripts[category][i].SetScoreManager(scoreManager)
+            poolScripts[category][i].SetPoolIndex(i)
+        end
+
+        -- 비활성화
+        obj:SetActive(false)
+    end
+
+    Debug.Log("[SpawnManager] Pool initialized: " .. category .. " (" .. #poolObjects[category] .. " items)")
+end
+
+---@details 풀에서 오브젝트 가져오기
+---@param category string 카테고리명
+---@return GameObject|nil, TrashItem|nil, number 오브젝트, 스크립트, 인덱스
+function GetFromPool(category)
+    local pool = pools[category]
+    if not pool or #pool.available == 0 then
+        Debug.Log("[SpawnManager] No available object in pool: " .. category)
+        return nil, nil, -1
+    end
+
+    -- available에서 하나 가져오기
+    local index = pool.available[1]
+    table.remove(pool.available, 1)
+    table.insert(pool.inUse, index)
+
+    local obj = poolObjects[category][index]
+    local script = poolScripts[category][index]
+
+    return obj, script, index
+end
+
+---@details 풀로 오브젝트 반환
+---@param category string 카테고리명
+---@param poolIndex number 풀 내 인덱스
+function ReturnToPool(category, poolIndex)
+    local pool = pools[category]
+    if not pool then
+        Debug.Log("[SpawnManager] Invalid category: " .. tostring(category))
+        return
+    end
+
+    -- inUse에서 제거
+    for i = #pool.inUse, 1, -1 do
+        if pool.inUse[i] == poolIndex then
+            table.remove(pool.inUse, i)
+            break
+        end
+    end
+
+    -- 이미 available에 있는지 확인
+    for _, idx in ipairs(pool.available) do
+        if idx == poolIndex then
+            Debug.Log("[SpawnManager] Object already in available pool: " .. category .. " index: " .. poolIndex)
+            return
+        end
+    end
+
+    -- available에 추가
+    table.insert(pool.available, poolIndex)
+
+    -- 오브젝트 비활성화 및 위치 복원
+    local obj = poolObjects[category][poolIndex]
+    local initialPose = poolInitialPose[category][poolIndex]
+
+    if obj then
+        -- 강제 릴리즈
+        local grabbable = obj:GetComponent("VivenGrabbableModule")
+        if grabbable then
+            grabbable:Release()
+            grabbable:FlushInteractableCollider()
+        end
+
+        -- 위치/회전 복원
+        if initialPose then
+            obj.transform.position = initialPose.Pos
+            obj.transform.rotation = initialPose.Rot
+        end
+
+        -- 비활성화
+        obj:SetActive(false)
+    end
+
+    Debug.Log("[SpawnManager] Returned to pool: " .. category .. " index: " .. poolIndex)
+end
+
+---@details 모든 오브젝트를 풀로 반환
+function ReturnAllToPool()
+    for category, pool in pairs(pools) do
+        -- inUse 복사본 생성 (반복 중 수정 방지)
+        local inUseCopy = {}
+        for _, index in ipairs(pool.inUse) do
+            table.insert(inUseCopy, index)
+        end
+
+        -- 모두 반환
+        for _, index in ipairs(inUseCopy) do
+            ReturnToPool(category, index)
+        end
+    end
+
+    activeTrashItems = {}
+    Debug.Log("[SpawnManager] All objects returned to pool")
 end
 
 --endregion
@@ -217,11 +414,11 @@ function InitSpawn(settings)
         maxTrashCount = settings.maxTrashCount or 5
     end
 
-    -- 스폰 영역 bounds 갱신 (런타임에 변경될 수 있으므로)
+    -- 스폰 영역 bounds 갱신
     UpdateSpawnBounds()
 
-    -- 기존 쓰레기 모두 제거
-    ClearAllTrash()
+    -- 기존 활성 쓰레기 모두 풀로 반환
+    ReturnAllToPool()
 
     Debug.Log("[SpawnManager] InitSpawn - Interval: " .. spawnInterval .. "s, MaxCount: " .. maxTrashCount)
 end
@@ -294,17 +491,29 @@ function ResumeSpawning()
     Debug.Log("[SpawnManager] Spawning resumed")
 end
 
----@details 모든 쓰레기 제거
+---@details 모든 쓰레기 제거 (풀로 반환)
 function ClearAllTrash()
+    ReturnAllToPool()
+    Debug.Log("[SpawnManager] All trash cleared (returned to pool)")
+end
+
+---@details 쓰레기가 제거될 때 호출 (TrashItem에서 직접 호출)
+---@param trashObject GameObject 제거된 쓰레기 오브젝트
+---@param category string 카테고리
+---@param poolIndex number 풀 인덱스
+function OnTrashDestroyed(trashObject, category, poolIndex)
+    -- activeTrashItems에서 제거
     for i = #activeTrashItems, 1, -1 do
-        local trash = activeTrashItems[i]
-        if trash and trash.gameObject then
-            trash.gameObject:SetActive(false)
+        if activeTrashItems[i].object == trashObject then
+            table.remove(activeTrashItems, i)
+            break
         end
     end
-    activeTrashItems = {}
 
-    Debug.Log("[SpawnManager] All trash cleared")
+    -- 풀로 반환
+    if category and poolIndex and poolIndex > 0 then
+        ReturnToPool(category, poolIndex)
+    end
 end
 
 --endregion
@@ -350,41 +559,35 @@ function SpawnRandomTrash()
     return SpawnTrash(category, position)
 end
 
----@details 쓰레기 스폰
+---@details 쓰레기 스폰 (풀링 방식)
 ---@param category string 카테고리
 ---@param position Vector3 스폰 위치
 ---@return boolean 스폰 성공 여부
 function SpawnTrash(category, position)
-    -- 프리팹 가져오기
-    local prefab = GetRandomPrefab(category)
-    if not prefab then
-        Debug.Log("[SpawnManager] No prefab found for category: " .. category)
+    -- 풀에서 가져오기
+    local trashObject, trashScript, poolIndex = GetFromPool(category)
+
+    if not trashObject then
+        Debug.Log("[SpawnManager] Failed to get object from pool: " .. category)
         return false
     end
 
-    -- 오브젝트 생성
-    local trashObject = CS.UnityEngine.Object.Instantiate(prefab, position, CS.UnityEngine.Quaternion.identity)
+    -- 위치 설정
+    trashObject.transform.position = position
+    trashObject.transform.rotation = CS.UnityEngine.Quaternion.identity
 
-    -- VObject ID 재생성 (중복 방지)
-    local vObject = trashObject:GetComponent("VObject")
-    if vObject then
-        local newId = CS.System.Guid.NewGuid():ToString()
-        vObject.objectId = newId
-        Debug.Log("[SpawnManager] VObject ID regenerated: " .. newId)
+    -- 활성화
+    trashObject:SetActive(true)
+
+    -- TrashItem 리셋
+    if trashScript then
+        trashScript.ResetTrash(category, position, poolIndex)
     end
 
-    -- TrashItem 스크립트 초기화 (self 참조와 scoreManager 전달)
-    local trashItem = trashObject:GetLuaComponent("TrashItem")
-    if trashItem then
-        trashItem.InitTrash(category, position, self, scoreManager)
-    else
-        Debug.Log("[SpawnManager] TrashItem component not found on prefab")
-    end
-
-    -- FloatingBehavior 초기화
+    -- FloatingBehavior 리셋
     local floatingBehavior = trashObject:GetLuaComponent("FloatingBehavior")
     if floatingBehavior then
-        floatingBehavior.InitFloating({
+        floatingBehavior.ResetFloating(position, {
             noiseScale = 0.5,
             noiseSpeed = 0.3,
             floatRange = 0.1,
@@ -393,12 +596,16 @@ function SpawnTrash(category, position)
     end
 
     -- 활성 목록에 추가
-    table.insert(activeTrashItems, trashObject)
+    table.insert(activeTrashItems, {
+        object = trashObject,
+        category = category,
+        poolIndex = poolIndex
+    })
 
     -- 이벤트 발생
     GameEvent.invoke("onTrashSpawn", trashObject, category)
 
-    Debug.Log("[SpawnManager] Spawned " .. category .. " at " .. tostring(position))
+    Debug.Log("[SpawnManager] Spawned " .. category .. " at " .. tostring(position) .. " (poolIndex: " .. poolIndex .. ")")
 
     return true
 end
@@ -407,19 +614,19 @@ end
 
 --region Utility Functions
 
----@details 랜덤 카테고리 선택 (프리팹이 있는 카테고리만)
+---@details 랜덤 카테고리 선택 (available 풀이 있는 카테고리만)
 ---@return string|nil
 function GetRandomCategory()
-    -- 프리팹이 있는 카테고리만 수집
     local availableCategories = {}
-    for category, prefabs in pairs(prefabsByCategory) do
-        if #prefabs > 0 then
+
+    for category, pool in pairs(pools) do
+        if #pool.available > 0 then
             table.insert(availableCategories, category)
         end
     end
 
     if #availableCategories == 0 then
-        Debug.Log("[SpawnManager] No prefabs available in any category!")
+        Debug.Log("[SpawnManager] No available categories!")
         return nil
     end
 
@@ -444,19 +651,6 @@ function GetRandomSpawnPosition()
     return Vector3(randomX, randomY, randomZ)
 end
 
----@details 카테고리에서 랜덤 프리팹 선택
----@param category string 카테고리
----@return GameObject|nil
-function GetRandomPrefab(category)
-    local prefabs = prefabsByCategory[category]
-    if not prefabs or #prefabs == 0 then
-        return nil
-    end
-
-    local index = math.random(1, #prefabs)
-    return prefabs[index]
-end
-
 ---@details 현재 활성 쓰레기 수 반환
 ---@return number
 function GetActiveTrashCount()
@@ -467,6 +661,20 @@ end
 ---@return boolean
 function IsSpawning()
     return isSpawning
+end
+
+---@details 카테고리별 풀 상태 반환 (디버그용)
+---@return table
+function GetPoolStatus()
+    local status = {}
+    for category, pool in pairs(pools) do
+        status[category] = {
+            available = #pool.available,
+            inUse = #pool.inUse,
+            total = #poolObjects[category]
+        }
+    end
+    return status
 end
 
 --endregion
