@@ -1,22 +1,22 @@
 # Recycle Dunk - 개발 현황 추적 문서
 
 **프로젝트명**: Recycle Dunk
-**버전**: 1.1.0
-**최종 수정일**: 2025-12-12
+**버전**: 1.4.0
+**최종 수정일**: 2025-12-13
 
 ---
 
 ## 1. 개발 진행 현황 요약
 
-### 전체 진행률: 70%
+### 전체 진행률: 85%
 
 | 카테고리 | 진행률 | 상태 |
 |---------|--------|------|
-| 핵심 시스템 | 100% | **완료** (AudioManager 추가) |
-| UI 시스템 | 80% | **진행중** (GameHUD 연결 완료, 작동 확인) |
-| 게임 오브젝트 | 36% | 진행중 |
-| 사운드/VFX | 70% | **진행중** (AudioManager Unity 컴포넌트 설정 완료) |
-| 테스트/버그 수정 | 30% | **진행중** (GameHUD 테스트 완료) |
+| 핵심 시스템 | 100% | **완료** (AudioManager, VFXManager 추가) |
+| UI 시스템 | 90% | **완료** (모든 UI 작동 확인) |
+| 게임 오브젝트 | 100% | **완료** (풀링 시스템 버그 수정) |
+| 사운드/VFX | 80% | **진행중** (AudioManager, VFXManager 연결 완료) |
+| 테스트/버그 수정 | 70% | **완료** (VObject 풀링 버그 수정) |
 
 ---
 
@@ -97,6 +97,34 @@
 ---
 
 ## 3. 개발 일지
+
+### 2025-12-13 (세션 7 - VObject 풀링 버그 수정)
+
+| 시간 | 작업 내용 | 상태 |
+|------|----------|------|
+| - | **핵심 버그 발견**: VObject는 SetActive() 사용 불가 | 완료 |
+| - | SpawnManager - SetActive 대신 MeshRenderer/Collider enabled 패턴 적용 | 완료 |
+| - | SpawnManager - FlushAllGrabbables 패턴 구현 (초기화 중 호출 방지) | 완료 |
+| - | SpawnManager - isPoolInitializing 플래그로 초기화 순서 제어 | 완료 |
+| - | FloatingBehavior - spawnPosition nil 에러 수정 (isFloating=false 초기화) | 완료 |
+| - | TrashItem - ReturnToPool에 GameObject.Find fallback 추가 | 완료 |
+| - | TrashItem - onTriggerEnter에 부모 오브젝트 검색 추가 | 완료 |
+| - | GameManager - 난이도 설정 조정 (Easy: 2초/7개, Hard: 1.5초/10개) | 완료 |
+| - | 설계문서 - VObject 풀링 패턴 및 FlushAllGrabbables 패턴 문서화 | 완료 |
+
+**핵심 발견 사항**:
+- **VObject SetActive 금지**: VIVEN SDK VObject는 내부 상태 관리로 인해 SetActive(false) 호출 시 상태가 깨짐
+- **대안**: MeshRenderer.enabled + Collider.enabled + HIDE_POSITION 패턴 사용
+- **FlushAllGrabbables**: 모든 Grabbable에 FlushInteractableCollider() 호출하여 Interactor 상태 동기화
+- **초기화 순서**: 풀 초기화 중에는 FlushAllGrabbables 호출 금지 (NullReferenceException 방지)
+
+**수정된 파일**:
+- SpawnManager.lua - SetPoolObjectVisible, FlushAllGrabbables, isPoolInitializing 추가
+- FloatingBehavior.lua - awake()에서 isFloating=false 초기화
+- TrashItem.lua - ReturnToPool fallback, onTriggerEnter 부모 검색
+- GameManager.lua - 난이도 설정 값 조정
+
+---
 
 ### 2025-12-12 (세션 6 - AudioManager Unity 연결)
 
@@ -259,7 +287,10 @@
 
 | ID | 제목 | 해결일 | 해결 방법 |
 |----|------|--------|----------|
-| - | 현재 이슈 없음 | - | - |
+| I-004 | TrashItem이 TrashBin 판정 안됨 | 2025-12-13 | onTriggerEnter에서 부모 오브젝트도 검색하도록 수정 |
+| I-003 | 쓰레기 스폰 트래킹 안됨 | 2025-12-13 | TrashItem.ReturnToPool에 GameObject.Find fallback 추가 |
+| I-002 | FloatingBehavior spawnPosition nil | 2025-12-13 | awake()에서 isFloating=false 초기화, ResetFloating()에서만 활성화 |
+| I-001 | FlushAllGrabbables NullReferenceException | 2025-12-13 | isPoolInitializing 플래그 추가, 초기화 중 호출 방지 |
 
 ---
 
@@ -288,6 +319,7 @@
 
 | 버전 | 날짜 | 변경 내용 | 작성자 |
 |------|------|----------|--------|
+| 1.4.0 | 2025-12-13 | VObject 풀링 버그 수정 (SetActive→MeshRenderer/Collider), FlushAllGrabbables 패턴 | Claude |
 | 1.3.0 | 2025-12-12 | AudioManager Unity 컴포넌트 설정 완료 | Claude |
 | 1.2.0 | 2025-12-12 | Object Pooling 구현, GeneralGarbage→Misc 통일 | Claude |
 | 1.1.0 | 2025-12-12 | EventCallback 제거, 직접 호출 방식으로 전환 | Claude |
@@ -308,6 +340,11 @@
 - [x] GameHUD HP 표시 Slider 방식으로 변경
 - [x] **Object Pooling 구현** - 110개 오브젝트 풀 (Instantiate 불가 대응)
 - [x] GeneralGarbage → Misc 카테고리명 통일
+- [x] **VObject 풀링 패턴 수정** - SetActive → MeshRenderer/Collider enabled
+- [x] **FlushAllGrabbables 패턴** - 모든 Grabbable Interactor 상태 동기화
+- [x] **FloatingBehavior 초기화 수정** - isFloating=false로 시작
+- [x] **TrashItem fallback 패턴** - SpawnManager 못 찾을 시 GameObject.Find
+- [x] **난이도 설정 조정** - Easy: 2초/7개, Hard: 1.5초/10개
 
 ### 다음 작업 (Unity Editor에서)
 - [ ] 풀 오브젝트 배치 (TrashPools 계층 구조 생성)
@@ -326,7 +363,10 @@
 ### 아키텍처 결정 사항
 - **EventCallback 미사용**: 복잡성 대비 이점 없음, 직접 호출 방식이 더 단순하고 디버깅 용이
 - **Object Pooling 필수**: VIVEN SDK는 동적 VObject Instantiate 미지원, 씬 배치 오브젝트 재사용
+- **VObject SetActive 금지**: VObject 내부 상태가 깨지므로 MeshRenderer/Collider enabled 패턴 사용
+- **FlushAllGrabbables 필수**: 오브젝트 가시성 변경 후 모든 Grabbable의 Interactor 상태 동기화
+- **풀링 초기화 순서**: 초기화 중 FlushAllGrabbables 호출 금지 (isPoolInitializing 플래그 사용)
 - **통신 패턴**:
   - UI → Manager: `GameObject.Find()` + `GetLuaComponent()`
-  - Manager → Manager: Injection + `GetLuaComponent()`
+  - Manager → Manager: Injection + `GetLuaComponent()` + fallback으로 GameObject.Find
   - Manager → UI: 직접 메서드 호출

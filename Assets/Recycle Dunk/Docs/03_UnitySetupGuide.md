@@ -2,7 +2,7 @@
 
 **프로젝트명**: Recycle Dunk
 **Unity 버전**: 2022.3 LTS 이상 권장
-**최종 수정일**: 2025-12-08
+**최종 수정일**: 2025-12-13
 
 ---
 
@@ -651,6 +651,9 @@ Script Variables:
 | 쓰레기 잡기 안됨 | VivenGrabbableModule 설정 오류 | 컴포넌트 설정 확인 |
 | 물리 동작 이상 | Rigidbody 설정 오류 | Use Gravity, Constraints 확인 |
 | UI 버튼 클릭 후 화면 전환 안됨 | GameManager GameObject 이름 불일치 | GameObject 이름이 정확히 "GameManager"인지 확인 |
+| **풀링된 VObject가 동작 안함** | **SetActive() 사용** | **MeshRenderer/Collider enabled 패턴 사용 (아래 12.4 참조)** |
+| **Grabbable이 잡히지 않음** | **FlushAllGrabbables 미호출** | **오브젝트 상태 변경 후 FlushAllGrabbables() 호출** |
+| **FloatingBehavior nil 에러** | **spawnPosition 초기화 전 update 실행** | **awake()에서 isFloating=false 설정** |
 
 ### 12.2 콘솔 에러 확인
 
@@ -682,6 +685,76 @@ end
 **주의사항**:
 - GameManager가 있는 GameObject의 이름은 반드시 **"GameManager"**여야 합니다
 - 대소문자 구분됨
+
+### 12.4 VObject 풀링 패턴 (필수)
+
+**⚠️ 중요: VObject는 SetActive() 사용 불가!**
+
+VIVEN SDK의 VObject는 내부 상태 관리로 인해 `SetActive(false)` 호출 시 상태가 깨집니다.
+풀링 시스템에서는 다음 패턴을 사용합니다:
+
+```lua
+-- ❌ 잘못된 방식
+gameObject:SetActive(false)  -- VObject 내부 상태 깨짐!
+
+-- ✅ 올바른 방식
+local HIDE_POSITION = Vector3(0, -1000, 0)
+
+function SetPoolObjectVisible(obj, visible)
+    -- 1. 위치로 숨기기
+    if visible then
+        obj.transform.position = spawnPosition
+    else
+        obj.transform.position = HIDE_POSITION
+    end
+
+    -- 2. MeshRenderer 비활성화
+    local renderers = obj:GetComponentsInChildren(typeof(CS.UnityEngine.MeshRenderer))
+    for i = 0, renderers.Length - 1 do
+        renderers[i].enabled = visible
+    end
+
+    -- 3. Collider 비활성화
+    local colliders = obj:GetComponentsInChildren(typeof(CS.UnityEngine.Collider))
+    for i = 0, colliders.Length - 1 do
+        colliders[i].enabled = visible
+    end
+end
+```
+
+### 12.5 FlushAllGrabbables 패턴
+
+오브젝트 가시성/상태 변경 후 모든 Grabbable의 Interactor 상태를 갱신해야 합니다:
+
+```lua
+-- 모든 Grabbable 모듈 수집
+local allGrabbableModules = {}
+
+-- 상태 변경 후 호출
+function FlushAllGrabbables()
+    if isPoolInitializing then return end  -- 초기화 중 호출 금지!
+
+    for _, grabbable in ipairs(allGrabbableModules) do
+        pcall(function()
+            grabbable:FlushInteractableCollider()
+        end)
+    end
+end
+
+-- 사용 예시
+SetPoolObjectVisible(obj, true)
+FlushAllGrabbables()  -- 반드시 호출!
+```
+
+### 12.6 Lua 메서드 호출 문법 주의
+
+```lua
+-- ❌ 잘못된 방식 (함수 호출, self 미전달)
+floatingBehavior.SetGrabbed(true)
+
+-- ✅ 올바른 방식 (메서드 호출, self 자동 전달)
+floatingBehavior:SetGrabbed(true)
+```
 
 ---
 

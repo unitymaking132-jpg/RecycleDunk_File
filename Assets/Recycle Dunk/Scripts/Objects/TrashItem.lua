@@ -177,8 +177,14 @@ function onTriggerEnter(other)
         return
     end
 
-    -- TrashBin 스크립트 확인
+    -- TrashBin 스크립트 확인 (현재 오브젝트 또는 부모에서)
     local trashBin = other.gameObject:GetLuaComponent("TrashBin")
+
+    -- 현재 오브젝트에 없으면 부모에서 찾기
+    if not trashBin and other.transform.parent then
+        trashBin = other.transform.parent.gameObject:GetLuaComponent("TrashBin")
+    end
+
     if trashBin then
         OnEnterTrashBin(trashBin)
     end
@@ -287,6 +293,15 @@ function ReturnToPool()
     -- SpawnManager에 반환 알림
     if spawnManager and spawnManager.OnTrashDestroyed then
         spawnManager.OnTrashDestroyed(self.gameObject, currentCategory, poolIndex)
+    else
+        -- spawnManager가 nil이면 직접 찾아서 호출
+        local spawnManagerObj = CS.UnityEngine.GameObject.Find("SpawnManager")
+        if spawnManagerObj then
+            local sm = spawnManagerObj:GetLuaComponent("SpawnManager")
+            if sm and sm.OnTrashDestroyed then
+                sm.OnTrashDestroyed(self.gameObject, currentCategory, poolIndex)
+            end
+        end
     end
 end
 

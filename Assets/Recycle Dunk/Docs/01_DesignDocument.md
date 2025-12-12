@@ -3,8 +3,8 @@
 **프로젝트명**: Recycle Dunk
 **플랫폼**: VR (VIVEN Platform) / PC
 **SDK**: VIVEN SDK (Lua Scripting)
-**버전**: 1.3.0
-**최종 수정일**: 2025-12-12
+**버전**: 1.4.0
+**최종 수정일**: 2025-12-13
 
 ---
 
@@ -509,22 +509,21 @@ end
 |------|-----|
 | 게임 시간 | 60초 |
 | 시작 HP | 5 |
-| 쓰레기 스폰 간격 | 3초 |
-| 최대 동시 쓰레기 수 | 5개 |
-| 쓰레기 이동 속도 | 낮음 |
-| 쓰레기통 크기 | 큼 |
+| 쓰레기 스폰 간격 | **2초** |
+| 최대 동시 쓰레기 수 | **7개** |
+| 정답 점수 | 100점 |
+| 콤보 보너스 | 50점 |
 
-### 8.2 Hard Mode (추후 개발)
+### 8.2 Hard Mode
 
 | 항목 | 값 |
 |------|-----|
 | 게임 시간 | 90초 |
 | 시작 HP | 3 |
-| 쓰레기 스폰 간격 | 2초 |
-| 최대 동시 쓰레기 수 | 8개 |
-| 쓰레기 이동 속도 | 중간 |
-| 쓰레기통 크기 | 중간 |
-| 추가 기믹 | 세척 필요, 복합 재질 |
+| 쓰레기 스폰 간격 | **1.5초** |
+| 최대 동시 쓰레기 수 | **10개** |
+| 정답 점수 | 150점 |
+| 콤보 보너스 | 75점 |
 
 ---
 
@@ -701,12 +700,85 @@ TrashPools/                    # 빈 GameObject
 |------|------|
 | `ResetFloating(position, settings)` | 떠다니기 상태 완전 초기화 |
 
-### 12.6 주의사항
+### 12.6 VObject 풀링 핵심 패턴
+
+**⚠️ 중요: VObject는 SetActive() 사용 불가!**
+
+VIVEN SDK의 VObject는 내부 상태 관리로 인해 `SetActive(false)` 호출 시 내부 상태가 깨질 수 있습니다.
+대신 **MeshRenderer + Collider** 방식을 사용합니다:
+
+```lua
+-- ❌ 잘못된 방식 (VObject 내부 상태 깨짐)
+gameObject:SetActive(false)
+
+-- ✅ 올바른 방식 (컴포넌트 개별 비활성화)
+local HIDE_POSITION = Vector3(0, -1000, 0)
+
+function SetPoolObjectVisible(obj, visible)
+    -- 위치로 숨기기/보이기
+    if visible then
+        obj.transform.position = spawnPosition
+    else
+        obj.transform.position = HIDE_POSITION
+    end
+
+    -- MeshRenderer 비활성화
+    local renderers = obj:GetComponentsInChildren(typeof(CS.UnityEngine.MeshRenderer))
+    for i = 0, renderers.Length - 1 do
+        renderers[i].enabled = visible
+    end
+
+    -- Collider 비활성화
+    local colliders = obj:GetComponentsInChildren(typeof(CS.UnityEngine.Collider))
+    for i = 0, colliders.Length - 1 do
+        colliders[i].enabled = visible
+    end
+end
+```
+
+### 12.7 FlushAllGrabbables 패턴
+
+**모든 Grabbable 오브젝트의 상태를 동기화하는 패턴**
+
+풀 오브젝트의 가시성/상태가 변경될 때, 모든 Grabbable의 Interactor 상태를 갱신해야 합니다:
+
+```lua
+-- 모든 Grabbable 모듈 수집 (InitializePools에서)
+local allGrabbableModules = {}
+
+function InitializePools()
+    -- ... 풀 초기화 중 ...
+    for _, obj in ipairs(poolObjects) do
+        local grabbable = obj:GetComponent("VivenGrabbableModule")
+        if grabbable then
+            table.insert(allGrabbableModules, grabbable)
+        end
+    end
+end
+
+-- 상태 변경 후 모든 Grabbable 갱신
+function FlushAllGrabbables()
+    for _, grabbable in ipairs(allGrabbableModules) do
+        local success, err = pcall(function()
+            grabbable:FlushInteractableCollider()
+        end)
+    end
+end
+
+-- 사용 예시: 오브젝트 가시성 변경 후 호출
+SetPoolObjectVisible(obj, true)
+FlushAllGrabbables()
+```
+
+### 12.8 주의사항
 
 1. **VObject ID 보존**: 씬에 배치 시 자동 생성된 고유 ID 유지 (재생성 안 함)
 2. **Grabbable 상태**: ReturnToPool 시 반드시 `Release()` + `FlushInteractableCollider()` 호출
 3. **위치 복원**: 풀 초기화 시 저장한 position/rotation으로 복원
 4. **카테고리 통일**: 모든 코드에서 `Misc` 사용 (`GeneralGarbage` 제거됨)
+5. **SetActive 금지**: VObject에는 절대 `SetActive()` 사용하지 않기
+6. **FlushAllGrabbables**: 오브젝트 가시성 변경 후 반드시 호출
+7. **초기화 순서**: 풀 초기화 중에는 FlushAllGrabbables 호출 금지 (isPoolInitializing 플래그 사용)
 
 ---
 
