@@ -155,6 +155,11 @@ end
 function OnRelease()
     isGrabbed = false
 
+    -- 떠다니기 재활성화
+    if floatingBehavior then
+        floatingBehavior.SetGrabbed(false)
+    end
+
     -- 햅틱 피드백
     PlayReleaseHaptic()
 
@@ -179,7 +184,7 @@ function onTriggerEnter(other)
     end
 end
 
----@details 쓰레기통 진입 처리
+---@details 쓰레기통 진입 처리 (TrashBin에 판정 위임)
 ---@param trashBin TrashBin 쓰레기통 스크립트
 function OnEnterTrashBin(trashBin)
     if isJudged then
@@ -187,26 +192,18 @@ function OnEnterTrashBin(trashBin)
     end
 
     isJudged = true
-    local binCategory = trashBin.GetBinCategory()
 
-    -- 정답 판정
-    local isCorrect = (currentCategory == binCategory)
+    -- TrashBin에 판정 위임 (판정 + ScoreManager 호출 + 이펙트 + 사운드)
+    local isCorrect = trashBin.OnTrashEntered(currentCategory, self)
 
+    -- 햅틱 피드백만 처리
     if isCorrect then
-        -- 정답 처리
-        if scoreManager then
-            scoreManager.OnCorrectAnswer(currentCategory)
-        end
-        PlayCorrectEffect()
-        Debug.Log("[TrashItem] Correct! " .. currentCategory .. " -> " .. binCategory)
+        PlayCorrectHaptic()
     else
-        -- 오답 처리
-        if scoreManager then
-            scoreManager.OnWrongAnswer(currentCategory, binCategory)
-        end
-        PlayWrongEffect()
-        Debug.Log("[TrashItem] Wrong! " .. currentCategory .. " -> " .. binCategory)
+        PlayWrongHaptic()
     end
+
+    Debug.Log("[TrashItem] Entered bin - Category: " .. currentCategory .. ", IsCorrect: " .. tostring(isCorrect))
 
     -- 풀로 반환
     ReturnToPool()
@@ -214,24 +211,18 @@ end
 
 --endregion
 
---region Effects
+--region Haptic Feedback
 
----@details 정답 이펙트 재생
-function PlayCorrectEffect()
-    -- 햅틱 피드백
+---@details 정답 햅틱 피드백 재생
+function PlayCorrectHaptic()
     XR.StartControllerVibration(false, 0.3, 0.15)
     XR.StartControllerVibration(true, 0.3, 0.15)
-
-    -- TODO: 파티클 이펙트 추가
 end
 
----@details 오답 이펙트 재생
-function PlayWrongEffect()
-    -- 햅틱 피드백 (더 강하게)
+---@details 오답 햅틱 피드백 재생 (더 강하게)
+function PlayWrongHaptic()
     XR.StartControllerVibration(false, 0.8, 0.3)
     XR.StartControllerVibration(true, 0.8, 0.3)
-
-    -- TODO: 파티클 이펙트 추가
 end
 
 ---@details 잡기 햅틱 피드백

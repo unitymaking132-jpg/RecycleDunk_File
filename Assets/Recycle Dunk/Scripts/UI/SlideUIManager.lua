@@ -186,8 +186,27 @@ end
 
 --region Button Handlers
 
+---@details AudioManager를 찾아서 반환
+---@return table|nil AudioManager Lua 컴포넌트
+function GetAudioManager()
+    local audioManagerObj = CS.UnityEngine.GameObject.Find("AudioManager")
+    if audioManagerObj then
+        return audioManagerObj:GetLuaComponent("AudioManager")
+    end
+    return nil
+end
+
+---@details UI 클릭 효과음 재생
+function PlayClickSound()
+    local audioManager = GetAudioManager()
+    if audioManager then
+        audioManager.PlayUIClick()
+    end
+end
+
 ---@details 이전 버튼 클릭
 function OnPrevClick()
+    PlayClickSound()
     if currentIndex > 1 then
         ShowSlide(currentIndex - 1)
     end
@@ -195,6 +214,7 @@ end
 
 ---@details 다음 버튼 클릭
 function OnNextClick()
+    PlayClickSound()
     if currentIndex < totalSlides then
         ShowSlide(currentIndex + 1)
     end
@@ -203,6 +223,7 @@ end
 ---@details 완료 버튼 클릭
 function OnCompleteClick()
     Debug.Log("[SlideUIManager] Complete button clicked!")
+    PlayClickSound()
 
     -- GameManager를 찾아서 직접 호출
     local gameManagerObj = CS.UnityEngine.GameObject.Find("GameManager")

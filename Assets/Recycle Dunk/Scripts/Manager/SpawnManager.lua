@@ -2,8 +2,7 @@
 --- 씬에 미리 배치된 오브젝트를 풀에서 가져와 재사용
 --- VIVEN SDK에서 동적 VObject Instantiate가 불가능하므로 풀링 방식 사용
 
--- EventCallback 모듈 로드
-local GameEvent = ImportLuaScript(EventCallback)
+-- EventCallback 모듈 제거됨 (직접 메서드 호출 방식으로 전환)
 
 --region Injection list
 local _INJECTED_ORDER = 0
@@ -19,6 +18,15 @@ local function NullableInject(OBJECT)
     end
     return OBJECT
 end
+
+-- Inspector 순서와 일치해야 함!
+---@type GameObject
+---@details 스폰 영역 오브젝트 (BoxCollider 포함)
+SpawnZoneObject = NullableInject(SpawnZoneObject)
+
+---@type GameObject
+---@details ScoreManager 오브젝트
+ScoreManagerObject = NullableInject(ScoreManagerObject)
 
 -- 풀 부모 오브젝트 (카테고리별)
 ---@type GameObject
@@ -40,14 +48,6 @@ MetalPool = NullableInject(MetalPool)
 ---@type GameObject
 ---@details Misc(일반쓰레기) 풀 부모 오브젝트
 MiscPool = NullableInject(MiscPool)
-
----@type GameObject
----@details 스폰 영역 오브젝트 (BoxCollider 포함)
-SpawnZoneObject = NullableInject(SpawnZoneObject)
-
----@type GameObject
----@details ScoreManager 오브젝트
-ScoreManagerObject = NullableInject(ScoreManagerObject)
 
 --endregion
 
@@ -94,6 +94,10 @@ local spawnCoroutine = nil
 ---@type ScoreManager
 ---@details 점수 매니저 참조
 local scoreManager = nil
+
+---@type boolean
+---@details 초기화 완료 여부
+local isInitialized = false
 
 --endregion
 
@@ -148,6 +152,13 @@ local poolParents = {}
 --region Unity Lifecycle
 
 function awake()
+    -- Pool injection 체크 - 하나도 없으면 스킵 (테스트 모드)
+    if not PaperPool and not PlasticPool and not GlassPool and not MetalPool and not MiscPool then
+        Debug.Log("[SpawnManager] No pools injected - disabled (test mode)")
+        isInitialized = false
+        return
+    end
+
     -- 풀 부모 매핑 설정
     poolParents = {
         Paper = PaperPool,
@@ -178,19 +189,25 @@ function awake()
     -- 풀 초기화
     InitializePools()
 
+    -- 초기화 완료 플래그 설정
+    isInitialized = true
+
     Debug.Log("[SpawnManager] Initialized with Object Pooling")
 end
 
 function start()
+    if not isInitialized then return end
     -- 이벤트 리스너 등록
     RegisterEventListeners()
 end
 
 function onEnable()
+    if not isInitialized then return end
     RegisterEventListeners()
 end
 
 function onDisable()
+    if not isInitialized then return end
     UnregisterEventListeners()
     StopSpawning()
 end
@@ -200,11 +217,11 @@ end
 --region Event Listeners
 
 function RegisterEventListeners()
-    GameEvent.registerEvent("onTrashDestroyed", OnTrashDestroyedEvent)
+    -- EventCallback 제거됨 - 직접 호출 방식 사용
 end
 
 function UnregisterEventListeners()
-    GameEvent.unregisterEvent("onTrashDestroyed", OnTrashDestroyedEvent)
+    -- EventCallback 제거됨 - 직접 호출 방식 사용
 end
 
 ---@details 쓰레기 제거 이벤트 핸들러 (EventCallback에서 호출)
@@ -602,8 +619,7 @@ function SpawnTrash(category, position)
         poolIndex = poolIndex
     })
 
-    -- 이벤트 발생
-    GameEvent.invoke("onTrashSpawn", trashObject, category)
+    -- 이벤트 발생 (EventCallback 제거됨)
 
     Debug.Log("[SpawnManager] Spawned " .. category .. " at " .. tostring(position) .. " (poolIndex: " .. poolIndex .. ")")
 

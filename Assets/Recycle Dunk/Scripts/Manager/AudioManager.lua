@@ -18,13 +18,21 @@ local function NullableInject(OBJECT)
     return OBJECT
 end
 
----@type AudioSource
----@details BGM 재생용 AudioSource
+---@type GameObject
+---@details BGM 재생용 AudioSource가 있는 GameObject (Injection 이름 유지)
 BGMSource = checkInject(BGMSource)
 
----@type AudioSource
----@details SFX 재생용 AudioSource
+---@type GameObject
+---@details SFX 재생용 AudioSource가 있는 GameObject (Injection 이름 유지)
 SFXSource = checkInject(SFXSource)
+
+---@type AudioSource
+---@details BGM 재생용 AudioSource 컴포넌트 (awake에서 초기화)
+local bgmAudioSource = nil
+
+---@type AudioSource
+---@details SFX 재생용 AudioSource 컴포넌트 (awake에서 초기화)
+local sfxAudioSource = nil
 
 ---@type AudioClip
 ---@details BGM 1 - Exploring the Cosmos
@@ -129,6 +137,29 @@ local isFading = false
 function awake()
     Debug.Log("[AudioManager] Initializing...")
 
+    -- AudioSource 컴포넌트 가져오기 (BGMSource/SFXSource는 GameObject)
+    if BGMSource then
+        bgmAudioSource = BGMSource:GetComponent(typeof(CS.UnityEngine.AudioSource))
+        if bgmAudioSource then
+            Debug.Log("[AudioManager] BGM AudioSource component found")
+        else
+            Debug.Log("[AudioManager] ERROR: BGM AudioSource component not found on BGMSource GameObject")
+        end
+    else
+        Debug.Log("[AudioManager] ERROR: BGMSource GameObject is nil")
+    end
+
+    if SFXSource then
+        sfxAudioSource = SFXSource:GetComponent(typeof(CS.UnityEngine.AudioSource))
+        if sfxAudioSource then
+            Debug.Log("[AudioManager] SFX AudioSource component found")
+        else
+            Debug.Log("[AudioManager] ERROR: SFX AudioSource component not found on SFXSource GameObject")
+        end
+    else
+        Debug.Log("[AudioManager] ERROR: SFXSource GameObject is nil")
+    end
+
     -- BGM 리스트 구성
     bgmList = {}
     if BGM_1 then table.insert(bgmList, BGM_1) end
@@ -139,18 +170,18 @@ function awake()
     Debug.Log("[AudioManager] BGM list created with " .. #bgmList .. " tracks")
 
     -- BGM AudioSource 설정 (loop=false로 설정하여 곡 끝 감지)
-    if BGMSource then
-        BGMSource.loop = false
-        BGMSource.playOnAwake = false
-        BGMSource.volume = bgmVolume
+    if bgmAudioSource then
+        bgmAudioSource.loop = false
+        bgmAudioSource.playOnAwake = false
+        bgmAudioSource.volume = bgmVolume
         Debug.Log("[AudioManager] BGM Source configured (loop=false for shuffle)")
     end
 
     -- SFX AudioSource 설정
-    if SFXSource then
-        SFXSource.loop = false
-        SFXSource.playOnAwake = false
-        SFXSource.volume = sfxVolume
+    if sfxAudioSource then
+        sfxAudioSource.loop = false
+        sfxAudioSource.playOnAwake = false
+        sfxAudioSource.volume = sfxVolume
         Debug.Log("[AudioManager] SFX Source configured")
     end
 
@@ -170,7 +201,7 @@ end
 
 function update()
     -- BGM 자동 순환 재생 체크
-    if bgmAutoPlay and not isFading and BGMSource and not BGMSource.isPlaying then
+    if bgmAutoPlay and not isFading and bgmAudioSource and not bgmAudioSource.isPlaying then
         -- 현재 곡이 끝났으면 다음 곡 재생
         PlayNextBGM()
     end
@@ -271,7 +302,7 @@ end
 ---@details 특정 BGM 클립 재생
 ---@param clip AudioClip 재생할 오디오 클립
 function PlayBGM(clip)
-    if not isInitialized or not BGMSource then
+    if not isInitialized or not bgmAudioSource then
         Debug.Log("[AudioManager] WARNING: BGM Source not ready")
         return
     end
@@ -281,32 +312,32 @@ function PlayBGM(clip)
         return
     end
 
-    BGMSource.clip = clip
-    BGMSource.volume = bgmMuted and 0 or bgmVolume
-    BGMSource:Play()
+    bgmAudioSource.clip = clip
+    bgmAudioSource.volume = bgmMuted and 0 or bgmVolume
+    bgmAudioSource:Play()
     Debug.Log("[AudioManager] Playing BGM: " .. clip.name)
 end
 
 ---@details BGM 정지
 function StopBGM()
-    if BGMSource then
-        BGMSource:Stop()
+    if bgmAudioSource then
+        bgmAudioSource:Stop()
         Debug.Log("[AudioManager] BGM stopped")
     end
 end
 
 ---@details BGM 일시정지
 function PauseBGM()
-    if BGMSource then
-        BGMSource:Pause()
+    if bgmAudioSource then
+        bgmAudioSource:Pause()
         bgmAutoPlay = false  -- 일시정지 시 자동 재생 중지
     end
 end
 
 ---@details BGM 재개
 function ResumeBGM()
-    if BGMSource then
-        BGMSource:UnPause()
+    if bgmAudioSource then
+        bgmAudioSource:UnPause()
         bgmAutoPlay = true  -- 재개 시 자동 재생 활성화
     end
 end
@@ -315,8 +346,8 @@ end
 ---@param volume number 볼륨 (0.0 ~ 1.0)
 function SetBGMVolume(volume)
     bgmVolume = math.max(0, math.min(1, volume))
-    if BGMSource and not bgmMuted then
-        BGMSource.volume = bgmVolume
+    if bgmAudioSource and not bgmMuted then
+        bgmAudioSource.volume = bgmVolume
     end
 end
 
@@ -324,8 +355,8 @@ end
 ---@param mute boolean 음소거 여부
 function SetBGMMute(mute)
     bgmMuted = mute
-    if BGMSource then
-        BGMSource.volume = bgmMuted and 0 or bgmVolume
+    if bgmAudioSource then
+        bgmAudioSource.volume = bgmMuted and 0 or bgmVolume
     end
 end
 
@@ -352,7 +383,7 @@ end
 ---@details SFX 재생 (OneShot)
 ---@param clip AudioClip 재생할 오디오 클립
 function PlaySFX(clip)
-    if not isInitialized or not SFXSource then
+    if not isInitialized or not sfxAudioSource then
         Debug.Log("[AudioManager] WARNING: SFX Source not ready")
         return
     end
@@ -362,7 +393,7 @@ function PlaySFX(clip)
     end
 
     if not sfxMuted then
-        SFXSource:PlayOneShot(clip, sfxVolume)
+        sfxAudioSource:PlayOneShot(clip, sfxVolume)
     end
 end
 
@@ -420,8 +451,8 @@ end
 ---@details 모든 사운드 정지
 function StopAll()
     StopBGMPlaylist()
-    if SFXSource then
-        SFXSource:Stop()
+    if sfxAudioSource then
+        sfxAudioSource:Stop()
     end
 end
 

@@ -64,10 +64,10 @@ local currentState = "Idle"
 local currentDifficulty = "Easy"
 
 ---@type number
-local remainingTime = 300
+local remainingTime = 60
 
 ---@type number
-local totalGameTime = 300
+local totalGameTime = 60
 
 ---@type boolean
 local isTimerRunning = false
@@ -75,7 +75,7 @@ local isTimerRunning = false
 ---@type table
 local difficultySettings = {
     Easy = {
-        gameTime = 300,
+        gameTime = 60,
         startHP = 5,
         spawnInterval = 3,
         maxTrashCount = 5,

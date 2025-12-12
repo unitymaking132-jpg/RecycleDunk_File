@@ -61,8 +61,29 @@ end
 
 --region Button Handlers
 
+---@details AudioManager를 찾아서 반환
+---@return table|nil AudioManager Lua 컴포넌트
+function GetAudioManager()
+    local audioManagerObj = CS.UnityEngine.GameObject.Find("AudioManager")
+    if audioManagerObj then
+        return audioManagerObj:GetLuaComponent("AudioManager")
+    end
+    return nil
+end
+
+---@details UI 클릭 효과음 재생
+function PlayClickSound()
+    local audioManager = GetAudioManager()
+    if audioManager then
+        audioManager.PlayUIClick()
+    end
+end
+
 ---@details Retry 버튼 클릭 → GameManager 직접 호출
 function OnRetryClick()
+    Debug.Log("[GameOverUI] Retry clicked")
+    PlayClickSound()
+
     local gameManagerObj = CS.UnityEngine.GameObject.Find("GameManager")
     if gameManagerObj then
         local gameManager = gameManagerObj:GetLuaComponent("GameManager")
@@ -70,7 +91,6 @@ function OnRetryClick()
             gameManager.OnRetryGame()
         end
     end
-    Debug.Log("[GameOverUI] Retry clicked")
 end
 
 --endregion

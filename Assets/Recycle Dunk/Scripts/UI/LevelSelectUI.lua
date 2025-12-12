@@ -125,21 +125,42 @@ function GetGameManager()
     return nil
 end
 
+---@details AudioManager를 찾아서 반환
+---@return table|nil AudioManager Lua 컴포넌트
+function GetAudioManager()
+    local audioManagerObj = CS.UnityEngine.GameObject.Find("AudioManager")
+    if audioManagerObj then
+        return audioManagerObj:GetLuaComponent("AudioManager")
+    end
+    return nil
+end
+
+---@details UI 클릭 효과음 재생
+function PlayClickSound()
+    local audioManager = GetAudioManager()
+    if audioManager then
+        audioManager.PlayUIClick()
+    end
+end
+
 ---@details Easy 버튼 클릭
 function OnEasyClick()
     Debug.Log("[LevelSelectUI] Easy button clicked")
+    PlayClickSound()
     SelectLevel("Easy")
 end
 
 ---@details Hard 버튼 클릭
 function OnHardClick()
     Debug.Log("[LevelSelectUI] Hard button clicked")
+    PlayClickSound()
     SelectLevel("Hard")
 end
 
 ---@details 뒤로가기 버튼 클릭
 function OnBackClick()
     Debug.Log("[LevelSelectUI] Back button clicked")
+    PlayClickSound()
 
     local gameManager = GetGameManager()
     if gameManager then

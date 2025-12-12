@@ -18,7 +18,7 @@ local function NullableInject(OBJECT)
 end
 
 ---@type string
----@details 쓰레기통 카테고리 ("Paper", "Plastic", "Glass", "Metal", "GeneralGarbage")
+---@details 쓰레기통 카테고리 ("Paper", "Plastic", "Glass", "Metal", "Misc")
 BinCategory = checkInject(BinCategory)
 
 ---@type GameObject
@@ -28,6 +28,14 @@ CorrectEffectObject = NullableInject(CorrectEffectObject)
 ---@type GameObject
 ---@details 오답 이펙트 오브젝트 (선택)
 WrongEffectObject = NullableInject(WrongEffectObject)
+
+---@type GameObject
+---@details ScoreManager 오브젝트
+ScoreManagerObject = NullableInject(ScoreManagerObject)
+
+---@type GameObject
+---@details AudioManager 오브젝트
+AudioManagerObject = NullableInject(AudioManagerObject)
 
 --endregion
 
@@ -48,6 +56,14 @@ local correctParticle = nil
 ---@type ParticleSystem
 local wrongParticle = nil
 
+---@type ScoreManager
+---@details 점수 매니저 참조
+local scoreManager = nil
+
+---@type AudioManager
+---@details 오디오 매니저 참조
+local audioManager = nil
+
 --endregion
 
 --region Unity Lifecycle
@@ -63,13 +79,23 @@ function awake()
         wrongParticle = WrongEffectObject:GetComponent(typeof(CS.UnityEngine.ParticleSystem))
         WrongEffectObject:SetActive(false)
     end
+
+    -- ScoreManager 참조 획득
+    if ScoreManagerObject then
+        scoreManager = ScoreManagerObject:GetLuaComponent("ScoreManager")
+    end
+
+    -- AudioManager 참조 획득
+    if AudioManagerObject then
+        audioManager = AudioManagerObject:GetLuaComponent("AudioManager")
+    end
 end
 
 function start()
     -- 카테고리 유효성 검사
     if not IsValidCategory(BinCategory) then
         Debug.LogWarning("[TrashBin] Invalid category: " .. tostring(BinCategory))
-        BinCategory = "GeneralGarbage"
+        BinCategory = "Misc"
     end
 
     Debug.Log("[TrashBin] Initialized - Category: " .. BinCategory)
@@ -79,23 +105,34 @@ end
 
 --region Public Functions (TrashItem에서 직접 호출)
 
----@details 쓰레기가 이 쓰레기통에 들어왔을 때 처리
+---@details 쓰레기가 이 쓰레기통에 들어왔을 때 처리 (판정 + ScoreManager 호출 + 이펙트)
 ---@param trashCategory string 쓰레기 카테고리
+---@param trashItem table TrashItem Lua 컴포넌트 (선택)
 ---@return boolean 정답 여부
-function OnTrashEntered(trashCategory)
+function OnTrashEntered(trashCategory, trashItem)
     receivedCount = receivedCount + 1
 
+    -- 1. 판정
     local isCorrect = (trashCategory == BinCategory)
 
+    -- 2. ScoreManager 호출
     if isCorrect then
         correctCount = correctCount + 1
+        if scoreManager then
+            scoreManager.OnCorrectAnswer(trashCategory)
+        end
+        -- 3. 정답 이펙트 + 사운드
         PlayCorrectEffect()
     else
         wrongCount = wrongCount + 1
+        if scoreManager then
+            scoreManager.OnWrongAnswer(trashCategory, BinCategory)
+        end
+        -- 3. 오답 이펙트 + 사운드
         PlayWrongEffect()
     end
 
-    Debug.Log("[TrashBin] Trash entered - Category: " .. trashCategory .. ", IsCorrect: " .. tostring(isCorrect))
+    Debug.Log("[TrashBin] Trash entered - Category: " .. trashCategory .. ", BinCategory: " .. BinCategory .. ", IsCorrect: " .. tostring(isCorrect))
 
     return isCorrect
 end
@@ -142,26 +179,36 @@ end
 
 --region Effects
 
----@details 정답 이펙트 재생
+---@details 정답 이펙트 재생 (파티클 + 사운드)
 function PlayCorrectEffect()
+    -- 파티클 이펙트
     if CorrectEffectObject then
         CorrectEffectObject:SetActive(true)
         if correctParticle then
             correctParticle:Play()
         end
     end
-    -- TODO: 사운드 재생
+
+    -- 사운드 재생
+    if audioManager then
+        audioManager.PlayGood()
+    end
 end
 
----@details 오답 이펙트 재생
+---@details 오답 이펙트 재생 (파티클 + 사운드)
 function PlayWrongEffect()
+    -- 파티클 이펙트
     if WrongEffectObject then
         WrongEffectObject:SetActive(true)
         if wrongParticle then
             wrongParticle:Play()
         end
     end
-    -- TODO: 사운드 재생
+
+    -- 사운드 재생
+    if audioManager then
+        audioManager.PlayMiss()
+    end
 end
 
 --endregion
@@ -177,7 +224,7 @@ function IsValidCategory(category)
         Plastic = true,
         Glass = true,
         Metal = true,
-        GeneralGarbage = true
+        Misc = true
     }
     return validCategories[category] == true
 end
@@ -190,9 +237,9 @@ function GetCategoryColor()
         Plastic = { r = 0.8, g = 0.2, b = 0.2 },
         Glass = { r = 0.2, g = 0.8, b = 0.3 },
         Metal = { r = 0.9, g = 0.8, b = 0.2 },
-        GeneralGarbage = { r = 0.3, g = 0.3, b = 0.3 }
+        Misc = { r = 0.3, g = 0.3, b = 0.3 }
     }
-    return colors[BinCategory] or colors["GeneralGarbage"]
+    return colors[BinCategory] or colors["Misc"]
 end
 
 --endregion
