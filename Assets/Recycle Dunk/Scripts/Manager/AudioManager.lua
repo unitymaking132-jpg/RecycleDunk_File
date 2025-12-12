@@ -373,23 +373,27 @@ function PlayThrow()
     PlaySFX(SFX_Throw)
 end
 
----@details 정답 효과음 재생
-function PlayGood()
+---@details 정답 효과음 재생 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
+function PlayGood(_)
     PlaySFX(SFX_Good)
 end
 
----@details 오답 효과음 재생
-function PlayMiss()
+---@details 오답 효과음 재생 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
+function PlayMiss(_)
     PlaySFX(SFX_Miss)
 end
 
----@details 게임오버 효과음 재생
-function PlayGameOver()
+---@details 게임오버 효과음 재생 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
+function PlayGameOver(_)
     PlaySFX(SFX_GameOver)
 end
 
----@details 결과/완료 효과음 재생
-function PlayFinish()
+---@details 결과/완료 효과음 재생 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
+function PlayFinish(_)
     PlaySFX(SFX_Finish)
 end
 

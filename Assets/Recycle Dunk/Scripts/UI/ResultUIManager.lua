@@ -137,9 +137,10 @@ end
 
 --region Public Functions
 
----@details 결과 표시
+---@details 결과 표시 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param result table GameResult 데이터
-function ShowResult(result)
+function ShowResult(_, result)
     if not result then
         return
     end

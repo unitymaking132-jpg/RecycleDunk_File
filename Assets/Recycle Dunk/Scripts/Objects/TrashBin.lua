@@ -87,11 +87,12 @@ end
 
 --region Public Functions (TrashItem에서 직접 호출)
 
----@details 쓰레기가 이 쓰레기통에 들어왔을 때 처리 (판정 + ScoreManager 호출 + 이펙트)
+---@details 쓰레기가 이 쓰레기통에 들어왔을 때 처리 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param trashCategory string 쓰레기 카테고리
 ---@param trashItem table TrashItem Lua 컴포넌트 (선택)
 ---@return boolean 정답 여부
-function OnTrashEntered(trashCategory, trashItem)
+function OnTrashEntered(_, trashCategory, trashItem)
     receivedCount = receivedCount + 1
 
     -- 1. 판정

@@ -177,9 +177,10 @@ function DisableFloating()
     isFloating = false
 end
 
----@details 잡힌 상태 설정
+---@details 잡힌 상태 설정 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param grabbed boolean 잡힌 상태
-function SetGrabbed(grabbed)
+function SetGrabbed(_, grabbed)
     isGrabbed = grabbed
 end
 
@@ -207,10 +208,11 @@ function GetSpawnPosition()
     return spawnPosition
 end
 
----@details 떠다니기 완전 리셋 (풀에서 재사용 시 호출)
+---@details 떠다니기 완전 리셋 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param position Vector3 새 스폰 위치
 ---@param settings table|nil 설정 (nil이면 기본값 유지)
-function ResetFloating(position, settings)
+function ResetFloating(_, position, settings)
     -- 스폰 위치 설정 (position이 nil이면 기본값 유지)
     if position then
         spawnPosition = position

@@ -89,9 +89,10 @@ end
 
 --region Public Functions
 
----@details 점수 시스템 초기화
+---@details 점수 시스템 초기화 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param settings table 게임 설정 (startHP, correctScore, comboBonus)
-function InitScore(settings)
+function InitScore(_, settings)
     if settings then
         startHP = settings.startHP or 5
         correctScore = settings.correctScore or 100
@@ -118,9 +119,10 @@ function InitScore(settings)
     UpdateUI()
 end
 
----@details 정답 처리
+---@details 정답 처리 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param category string 쓰레기 카테고리
-function OnCorrectAnswer(category)
+function OnCorrectAnswer(_, category)
     -- 콤보 증가
     currentCombo = currentCombo + 1
     if currentCombo > maxCombo then
@@ -140,10 +142,11 @@ function OnCorrectAnswer(category)
     UpdateUI()
 end
 
----@details 오답 처리
+---@details 오답 처리 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param trashCategory string 쓰레기 카테고리
 ---@param binCategory string 쓰레기통 카테고리
-function OnWrongAnswer(trashCategory, binCategory)
+function OnWrongAnswer(_, trashCategory, binCategory)
     -- 콤보 리셋
     currentCombo = 0
 
@@ -165,9 +168,10 @@ function OnWrongAnswer(trashCategory, binCategory)
     end
 end
 
----@details 쓰레기 이탈 처리 (경계 밖으로 나감)
+---@details 쓰레기 이탈 처리 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param category string 쓰레기 카테고리
-function OnTrashLost(category)
+function OnTrashLost(_, category)
     -- 콤보 리셋
     currentCombo = 0
 
@@ -191,31 +195,31 @@ end
 
 ---@details 현재 점수 반환
 ---@return number
-function GetScore()
+function GetScore(_)
     return currentScore
 end
 
 ---@details 현재 HP 반환
 ---@return number
-function GetHP()
+function GetHP(_)
     return currentHP
 end
 
 ---@details 현재 콤보 반환
 ---@return number
-function GetCombo()
+function GetCombo(_)
     return currentCombo
 end
 
 ---@details 최대 콤보 반환
 ---@return number
-function GetMaxCombo()
+function GetMaxCombo(_)
     return maxCombo
 end
 
 ---@details 정확도 계산 (%)
 ---@return number
-function GetAccuracy()
+local function GetAccuracyInternal()
     local total = correctCount + wrongCount
     if total == 0 then
         return 0
@@ -225,7 +229,7 @@ end
 
 ---@details 가장 많이 틀린 카테고리 반환
 ---@return string|nil
-function GetMostWrongCategory()
+local function GetMostWrongCategoryInternal()
     local maxWrong = 0
     local mostWrongCategory = nil
 
@@ -239,16 +243,17 @@ function GetMostWrongCategory()
     return mostWrongCategory
 end
 
----@details 게임 결과 데이터 반환
+---@details 게임 결과 데이터 반환 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@return table GameResult
-function GetGameResult()
+function GetGameResult(_)
     return {
         totalScore = currentScore,
         correctCount = correctCount,
         wrongCount = wrongCount,
-        accuracy = GetAccuracy(),
+        accuracy = GetAccuracyInternal(),
         maxCombo = maxCombo,
-        mostMissedCategory = GetMostWrongCategory()
+        mostMissedCategory = GetMostWrongCategoryInternal()
     }
 end
 

@@ -61,6 +61,51 @@ local maxHP = 5
 
 --endregion
 
+--region Internal Functions (self 파라미터 없는 내부용)
+
+local function UpdateTimerInternal(remainingTime)
+    if timerText then
+        local minutes = math.floor(remainingTime / 60)
+        local seconds = remainingTime % 60
+        timerText.text = string.format("%02d:%02d", minutes, seconds)
+    end
+end
+
+local function UpdateHPInternal(hp, max)
+    currentHP = hp
+    maxHP = max or maxHP
+
+    -- HP Slider 업데이트
+    if hpSlider then
+        hpSlider.maxValue = maxHP
+        hpSlider.value = hp
+    end
+
+    -- HP 텍스트 업데이트
+    if hpText then
+        hpText.text = tostring(hp)
+    end
+end
+
+local function UpdateScoreInternal(score)
+    if scoreText then
+        scoreText.text = tostring(score)
+    end
+end
+
+local function UpdateComboInternal(combo)
+    if comboText then
+        if combo > 1 then
+            comboText.text = "x" .. tostring(combo)
+            ComboTextObject:SetActive(true)
+        else
+            ComboTextObject:SetActive(false)
+        end
+    end
+end
+
+--endregion
+
 --region Unity Lifecycle
 
 function awake()
@@ -95,60 +140,39 @@ end
 
 ---@details UI 초기화
 function InitUI()
-    UpdateTimer(60)
-    UpdateHP(5, 5)
-    UpdateScore(0)
-    UpdateCombo(0)
+    UpdateTimerInternal(60)
+    UpdateHPInternal(5, 5)
+    UpdateScoreInternal(0)
+    UpdateComboInternal(0)
 end
 
----@details 타이머 업데이트
+---@details 타이머 업데이트 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param remainingTime number 남은 시간 (초)
-function UpdateTimer(remainingTime)
-    if timerText then
-        local minutes = math.floor(remainingTime / 60)
-        local seconds = remainingTime % 60
-        timerText.text = string.format("%02d:%02d", minutes, seconds)
-    end
+function UpdateTimer(_, remainingTime)
+    UpdateTimerInternal(remainingTime)
 end
 
----@details HP 업데이트
+---@details HP 업데이트 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param hp number 현재 HP
 ---@param max number 최대 HP
-function UpdateHP(hp, max)
-    currentHP = hp
-    maxHP = max or maxHP
-
-    -- HP Slider 업데이트
-    if hpSlider then
-        hpSlider.maxValue = maxHP
-        hpSlider.value = hp
-    end
-
-    -- HP 텍스트 업데이트
-    if hpText then
-        hpText.text = tostring(hp)
-    end
+function UpdateHP(_, hp, max)
+    UpdateHPInternal(hp, max)
 end
 
----@details 점수 업데이트
+---@details 점수 업데이트 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param score number 현재 점수
-function UpdateScore(score)
-    if scoreText then
-        scoreText.text = tostring(score)
-    end
+function UpdateScore(_, score)
+    UpdateScoreInternal(score)
 end
 
----@details 콤보 업데이트
+---@details 콤보 업데이트 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param combo number 현재 콤보
-function UpdateCombo(combo)
-    if comboText then
-        if combo > 1 then
-            comboText.text = "x" .. tostring(combo)
-            ComboTextObject:SetActive(true)
-        else
-            ComboTextObject:SetActive(false)
-        end
-    end
+function UpdateCombo(_, combo)
+    UpdateComboInternal(combo)
 end
 
 --endregion

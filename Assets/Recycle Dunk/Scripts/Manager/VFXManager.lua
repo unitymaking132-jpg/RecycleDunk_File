@@ -104,9 +104,10 @@ end
 
 --region Public VFX Functions
 
----@details 정답 VFX 재생
+---@details 정답 VFX 재생 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param position Vector3 생성 위치
-function PlayCorrectVFX(position)
+function PlayCorrectVFX(_, position)
     if VFX_Correct then
         SpawnVFX(VFX_Correct, position, 2.0)
     end
@@ -120,9 +121,10 @@ function PlayCorrectVFXAt(transform)
     end
 end
 
----@details 오답 VFX 재생
+---@details 오답 VFX 재생 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param position Vector3 생성 위치
-function PlayWrongVFX(position)
+function PlayWrongVFX(_, position)
     if VFX_Wrong then
         SpawnVFX(VFX_Wrong, position, 2.0)
     end
@@ -136,9 +138,10 @@ function PlayWrongVFXAt(transform)
     end
 end
 
----@details Confetti 축하 VFX 재생
+---@details Confetti 축하 VFX 재생 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param position Vector3 생성 위치
-function PlayConfettiVFX(position)
+function PlayConfettiVFX(_, position)
     if VFX_Confetti then
         SpawnVFX(VFX_Confetti, position, 3.0)
     end

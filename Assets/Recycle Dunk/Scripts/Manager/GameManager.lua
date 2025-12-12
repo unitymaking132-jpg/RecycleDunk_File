@@ -211,9 +211,10 @@ function OnRetryGame()
     StartGame()
 end
 
----@details 게임오버 처리 (ScoreManager에서 호출)
+---@details 게임오버 처리 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param reason string 게임오버 사유
-function OnGameOver(reason)
+function OnGameOver(_, reason)
     if reason == "HP_ZERO" then
         ChangeState("GameOver")
     end

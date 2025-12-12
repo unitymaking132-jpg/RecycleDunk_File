@@ -505,9 +505,10 @@ end
 
 --region Public Functions
 
----@details 스폰 설정 초기화
+---@details 스폰 설정 초기화 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param settings table 게임 설정
-function InitSpawn(settings)
+function InitSpawn(_, settings)
     if settings then
         spawnInterval = settings.spawnInterval or 3
         maxTrashCount = settings.maxTrashCount or 5
@@ -530,8 +531,9 @@ function UpdateSpawnBounds()
     end
 end
 
----@details 스폰 시작
-function StartSpawning()
+---@details 스폰 시작 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
+function StartSpawning(_)
     if isSpawning then return end
 
     isSpawning = true
@@ -556,8 +558,9 @@ function StartSpawning()
     end))
 end
 
----@details 스폰 정지
-function StopSpawning()
+---@details 스폰 정지 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
+function StopSpawning(_)
     isSpawning = false
     isPaused = false
 
@@ -567,13 +570,15 @@ function StopSpawning()
     end
 end
 
----@details 스폰 일시정지
-function PauseSpawning()
+---@details 스폰 일시정지 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
+function PauseSpawning(_)
     isPaused = true
 end
 
----@details 스폰 재개
-function ResumeSpawning()
+---@details 스폰 재개 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
+function ResumeSpawning(_)
     isPaused = false
 end
 
@@ -582,11 +587,12 @@ function ClearAllTrash()
     ReturnAllToPool()
 end
 
----@details 쓰레기가 제거될 때 호출 (TrashItem에서 직접 호출)
+---@details 쓰레기가 제거될 때 호출 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param trashObject GameObject 제거된 쓰레기 오브젝트
 ---@param category string 카테고리
 ---@param poolIndex number 풀 인덱스
-function OnTrashDestroyed(trashObject, category, poolIndex)
+function OnTrashDestroyed(_, trashObject, category, poolIndex)
     for i = #activeTrashItems, 1, -1 do
         if activeTrashItems[i].object == trashObject then
             table.remove(activeTrashItems, i)
@@ -654,7 +660,7 @@ function SpawnTrash(category, position)
 
     -- TrashItem 리셋
     if trashScript then
-        trashScript.ResetTrash(category, position, poolIndex)
+        trashScript:ResetTrash(category, position, poolIndex)
     end
 
     -- FloatingBehavior 리셋

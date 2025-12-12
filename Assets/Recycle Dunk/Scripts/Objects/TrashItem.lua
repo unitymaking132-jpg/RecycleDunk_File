@@ -245,11 +245,12 @@ end
 
 --region Public Functions
 
----@details 쓰레기 아이템 리셋 (풀에서 활성화 시 SpawnManager에서 호출)
+---@details 쓰레기 아이템 리셋 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
 ---@param category string 쓰레기 카테고리
 ---@param position Vector3 스폰 위치
 ---@param index number 풀 내 인덱스
-function ResetTrash(category, position, index)
+function ResetTrash(_, category, position, index)
     currentCategory = category or TrashCategory or "Misc"
     TrashCategory = currentCategory
     spawnPosition = position or self.transform.position
