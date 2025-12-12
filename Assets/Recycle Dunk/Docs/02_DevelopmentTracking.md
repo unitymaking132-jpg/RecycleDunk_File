@@ -1,7 +1,7 @@
 # Recycle Dunk - 개발 현황 추적 문서
 
 **프로젝트명**: Recycle Dunk
-**버전**: 1.4.0
+**버전**: 1.5.0
 **최종 수정일**: 2025-12-13
 
 ---
@@ -97,6 +97,34 @@
 ---
 
 ## 3. 개발 일지
+
+### 2025-12-13 (세션 8 - Grabbable-FloatingBehavior 충돌 버그 수정)
+
+| 시간 | 작업 내용 | 상태 |
+|------|----------|------|
+| - | **핵심 버그 발견**: Lua 메서드 호출 시 `.` 대신 `:` 사용 필요 | 완료 |
+| - | 모든 외부 호출 함수에 `_` (self) 파라미터 추가 | 완료 |
+| - | **Grabbable-FloatingBehavior 충돌 해결** | 완료 |
+| - | TrashItem.OnRelease()에서 SetGrabbed(false) 제거 - 던진 후 물리 시뮬레이션 유지 | 완료 |
+| - | FloatingBehavior.ResetFloating()에서 즉시 위치 설정 추가 | 완료 |
+| - | FloatingBehavior.UpdateFloating()에서 거리 체크 후 즉시 텔레포트 (1m 이상이면 Lerp 스킵) | 완료 |
+| - | SpawnManager.SpawnTrash() 순서 변경 - FloatingBehavior 먼저 리셋 후 활성화 | 완료 |
+| - | SpawnManager.ReturnToPool()에서 DisableFloating() 호출 추가 | 완료 |
+| - | FloatingBehavior.EnableFloating/DisableFloating에 `_` 파라미터 추가 | 완료 |
+
+**핵심 발견 사항**:
+- **Lua `:` vs `.` 문법**: `:` 호출 시 self가 첫 번째 인자로 전달됨, 함수 정의에 `_` 파라미터 필요
+- **FloatingBehavior 충돌 원인**: 던진 후 OnRelease()에서 SetGrabbed(false) 호출 → FloatingBehavior가 위치를 덮어쓰며 spawnPosition으로 끌려감
+- **풀링 시 Lerp 문제**: GameObject가 활성화 상태(MeshRenderer만 끔)이므로 update()가 계속 실행 → HIDE_POSITION에서 Lerp 시작
+- **해결 패턴**: 거리가 1m 이상이면 Lerp 대신 즉시 텔레포트
+
+**수정된 파일**:
+- TrashItem.lua - OnRelease()에서 SetGrabbed(false) 제거
+- FloatingBehavior.lua - ResetFloating() 즉시 위치 설정, UpdateFloating() 거리 체크 추가, Enable/DisableFloating `_` 추가
+- SpawnManager.lua - SpawnTrash() 순서 변경, ReturnToPool() DisableFloating() 추가
+- GameHUD.lua, ScoreManager.lua, AudioManager.lua, VFXManager.lua, TrashBin.lua, GameManager.lua, ResultUIManager.lua - 외부 호출 함수에 `_` 파라미터 추가
+
+---
 
 ### 2025-12-13 (세션 7 - VObject 풀링 버그 수정)
 
@@ -287,6 +315,9 @@
 
 | ID | 제목 | 해결일 | 해결 방법 |
 |----|------|--------|----------|
+| I-007 | 스폰 시 오브젝트가 하단에서 날아옴 | 2025-12-13 | UpdateFloating()에서 거리 1m 이상이면 즉시 텔레포트 |
+| I-006 | 던진 후 FloatingBehavior가 위치 덮어씀 | 2025-12-13 | OnRelease()에서 SetGrabbed(false) 제거, ReturnToPool에서 DisableFloating() 호출 |
+| I-005 | Lua 메서드 호출 시 인자 밀림 (table vs number) | 2025-12-13 | 모든 외부 호출 함수에 `_` (self) 파라미터 추가 |
 | I-004 | TrashItem이 TrashBin 판정 안됨 | 2025-12-13 | onTriggerEnter에서 부모 오브젝트도 검색하도록 수정 |
 | I-003 | 쓰레기 스폰 트래킹 안됨 | 2025-12-13 | TrashItem.ReturnToPool에 GameObject.Find fallback 추가 |
 | I-002 | FloatingBehavior spawnPosition nil | 2025-12-13 | awake()에서 isFloating=false 초기화, ResetFloating()에서만 활성화 |
@@ -319,6 +350,7 @@
 
 | 버전 | 날짜 | 변경 내용 | 작성자 |
 |------|------|----------|--------|
+| 1.5.0 | 2025-12-13 | Grabbable-FloatingBehavior 충돌 버그 수정, Lua `:` 문법 및 `_` 파라미터 적용 | Claude |
 | 1.4.0 | 2025-12-13 | VObject 풀링 버그 수정 (SetActive→MeshRenderer/Collider), FlushAllGrabbables 패턴 | Claude |
 | 1.3.0 | 2025-12-12 | AudioManager Unity 컴포넌트 설정 완료 | Claude |
 | 1.2.0 | 2025-12-12 | Object Pooling 구현, GeneralGarbage→Misc 통일 | Claude |
@@ -366,6 +398,14 @@
 - **VObject SetActive 금지**: VObject 내부 상태가 깨지므로 MeshRenderer/Collider enabled 패턴 사용
 - **FlushAllGrabbables 필수**: 오브젝트 가시성 변경 후 모든 Grabbable의 Interactor 상태 동기화
 - **풀링 초기화 순서**: 초기화 중 FlushAllGrabbables 호출 금지 (isPoolInitializing 플래그 사용)
+- **Lua 메서드 호출 규칙**:
+  - 외부 호출 함수는 반드시 `:` 문법으로 호출 (`obj:Method()`)
+  - 함수 정의 시 첫 번째 파라미터로 `_` (self) 추가 필요
+  - 내부 함수는 `.` 또는 직접 호출 가능
+- **FloatingBehavior-Grabbable 패턴**:
+  - 던진 후 FloatingBehavior는 비활성화 상태 유지 (물리 시뮬레이션 우선)
+  - ReturnToPool에서 DisableFloating() 호출하여 update() 중지
+  - 스폰 시 거리가 1m 이상이면 즉시 텔레포트 (Lerp 스킵)
 - **통신 패턴**:
   - UI → Manager: `GameObject.Find()` + `GetLuaComponent()`
   - Manager → Manager: Injection + `GetLuaComponent()` + fallback으로 GameObject.Find

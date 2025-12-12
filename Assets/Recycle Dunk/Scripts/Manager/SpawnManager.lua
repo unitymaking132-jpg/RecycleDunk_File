@@ -480,6 +480,13 @@ function ReturnToPool(category, poolIndex)
             grabbable:Release()
         end
 
+        -- FloatingBehavior 비활성화 (update()에서 Lerp 방지)
+        -- GameObject는 활성화 상태이므로 update()가 계속 실행됨
+        local floatingBehavior = obj:GetLuaComponent("FloatingBehavior")
+        if floatingBehavior then
+            floatingBehavior:DisableFloating()
+        end
+
         -- 비활성화
         SetPoolObjectVisible(category, poolIndex, false)
     end
@@ -651,19 +658,8 @@ function SpawnTrash(category, position)
         return false
     end
 
-    -- 위치 설정
-    trashObject.transform.position = position
-    trashObject.transform.rotation = CS.UnityEngine.Quaternion.identity
-
-    -- 활성화
-    SetPoolObjectVisible(category, poolIndex, true)
-
-    -- TrashItem 리셋
-    if trashScript then
-        trashScript:ResetTrash(category, position, poolIndex)
-    end
-
-    -- FloatingBehavior 리셋
+    -- FloatingBehavior 먼저 리셋 (활성화 전에 호출하여 Lerp 방지)
+    -- 이전 isFloating=true 상태에서 update()가 실행되면 HIDE_POSITION에서 Lerp됨
     local floatingBehavior = trashObject:GetLuaComponent("FloatingBehavior")
     if floatingBehavior then
         floatingBehavior:ResetFloating(position, {
@@ -672,6 +668,18 @@ function SpawnTrash(category, position)
             floatRange = 0.1,
             rotationSpeed = 5
         })
+    end
+
+    -- 위치 설정 (ResetFloating에서 이미 설정하지만 안전을 위해)
+    trashObject.transform.position = position
+    trashObject.transform.rotation = CS.UnityEngine.Quaternion.identity
+
+    -- 활성화 (MeshRenderer/Collider 켜기)
+    SetPoolObjectVisible(category, poolIndex, true)
+
+    -- TrashItem 리셋
+    if trashScript then
+        trashScript:ResetTrash(category, position, poolIndex)
     end
 
     -- 활성 목록에 추가

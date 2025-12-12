@@ -157,10 +157,9 @@ end
 function OnRelease()
     isGrabbed = false
 
-    -- 떠다니기 재활성화 (놓았을 때 다시 떠다니게)
-    if floatingBehavior then
-        floatingBehavior:SetGrabbed(false)
-    end
+    -- 던진 후에는 FloatingBehavior를 비활성화 상태로 유지
+    -- 물리 시뮬레이션이 처리해야 하므로 위치를 덮어쓰면 안 됨
+    -- FloatingBehavior는 풀로 반환 후 다음 스폰 시 ResetFloating에서 활성화됨
 
     -- 햅틱 피드백
     PlayReleaseHaptic()

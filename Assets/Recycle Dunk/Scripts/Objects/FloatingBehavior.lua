@@ -119,12 +119,19 @@ function UpdateFloating()
         spawnPosition.z + offsetZ
     )
 
-    -- 부드럽게 이동
-    self.transform.position = Vector3.Lerp(
-        self.transform.position,
-        newPosition,
-        Time.deltaTime * noiseScale * 10
-    )
+    -- 현재 위치가 spawnPosition에서 너무 멀면 즉시 텔레포트 (풀에서 꺼낼 때 HIDE_POSITION에서 오는 경우)
+    local distance = Vector3.Distance(self.transform.position, spawnPosition)
+    if distance > 1 then
+        -- 1미터 이상 떨어져 있으면 즉시 이동
+        self.transform.position = newPosition
+    else
+        -- 부드럽게 이동
+        self.transform.position = Vector3.Lerp(
+            self.transform.position,
+            newPosition,
+            Time.deltaTime * noiseScale * 10
+        )
+    end
 
     currentOffset = Vector3(offsetX, offsetY, offsetZ)
 end
@@ -167,13 +174,15 @@ function SetSpawnPosition(position)
     spawnPosition = position
 end
 
----@details 떠다니기 활성화
-function EnableFloating()
+---@details 떠다니기 활성화 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
+function EnableFloating(_)
     isFloating = true
 end
 
----@details 떠다니기 비활성화
-function DisableFloating()
+---@details 떠다니기 비활성화 (외부 호출용, : 문법으로 호출)
+---@param _ any self (사용 안함)
+function DisableFloating(_)
     isFloating = false
 end
 
@@ -216,6 +225,8 @@ function ResetFloating(_, position, settings)
     -- 스폰 위치 설정 (position이 nil이면 기본값 유지)
     if position then
         spawnPosition = position
+        -- 즉시 스폰 위치로 이동 (Lerp 없이, HIDE_POSITION에서 천천히 올라오는 것 방지)
+        self.transform.position = position
     end
 
     -- 설정 적용
