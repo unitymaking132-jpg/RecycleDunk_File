@@ -20,15 +20,15 @@ local function NullableInject(OBJECT)
 end
 
 ---@type GameObject
----@details 타이머 텍스트 오브젝트
+---@details 타이머 텍스트 오브젝트 (TMP_Text가 있는 오브젝트)
 TimerTextObject = checkInject(TimerTextObject)
 
 ---@type GameObject
----@details HP 바 이미지 오브젝트 (Filled)
-HPBarObject = checkInject(HPBarObject)
+---@details HP Slider 오브젝트 (Unity Slider 컴포넌트가 있는 오브젝트)
+HPSliderObject = checkInject(HPSliderObject)
 
 ---@type GameObject
----@details HP 텍스트 오브젝트 (선택)
+---@details HP 텍스트 오브젝트 (선택, HP 숫자 표시용)
 HPTextObject = NullableInject(HPTextObject)
 
 ---@type GameObject
@@ -47,9 +47,9 @@ ComboTextObject = NullableInject(ComboTextObject)
 ---@details 타이머 텍스트 컴포넌트
 local timerText = nil
 
----@type Image
----@details HP 바 이미지 컴포넌트
-local hpBarImage = nil
+---@type Slider
+---@details HP Slider 컴포넌트
+local hpSlider = nil
 
 ---@type TMP_Text
 ---@details HP 텍스트 컴포넌트
@@ -76,11 +76,19 @@ local maxHP = 5
 --region Unity Lifecycle
 
 function awake()
-    -- 컴포넌트 가져오기
+    -- 타이머 텍스트 컴포넌트 가져오기
     timerText = TimerTextObject:GetComponent(typeof(TMP_Text))
+    if timerText == nil then
+        Debug.LogWarning("[GameHUD] TimerTextObject에서 TMP_Text를 찾을 수 없습니다")
+    end
 
-    hpBarImage = HPBarObject:GetComponent(typeof(CS.UnityEngine.UI.Image))
+    -- HP Slider 컴포넌트 가져오기
+    hpSlider = HPSliderObject:GetComponent(typeof(CS.UnityEngine.UI.Slider))
+    if hpSlider == nil then
+        Debug.LogWarning("[GameHUD] HPSliderObject에서 Slider를 찾을 수 없습니다")
+    end
 
+    -- 선택적 컴포넌트들
     if HPTextObject then
         hpText = HPTextObject:GetComponent(typeof(TMP_Text))
     end
@@ -92,6 +100,8 @@ function awake()
     if ComboTextObject then
         comboText = ComboTextObject:GetComponent(typeof(TMP_Text))
     end
+
+    Debug.Log("[GameHUD] Awake 완료 - Slider: " .. tostring(hpSlider ~= nil) .. ", Timer: " .. tostring(timerText ~= nil))
 end
 
 function start()
@@ -172,9 +182,10 @@ function UpdateHP(hp, max)
     currentHP = hp
     maxHP = max or maxHP
 
-    -- HP 바 업데이트 (fillAmount)
-    if hpBarImage then
-        hpBarImage.fillAmount = hp / maxHP
+    -- HP Slider 업데이트
+    if hpSlider then
+        hpSlider.maxValue = maxHP
+        hpSlider.value = hp
     end
 
     -- HP 텍스트 업데이트
