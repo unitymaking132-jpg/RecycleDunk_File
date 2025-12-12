@@ -3,7 +3,7 @@
 **프로젝트명**: Recycle Dunk
 **플랫폼**: VR (VIVEN Platform) / PC
 **SDK**: VIVEN SDK (Lua Scripting)
-**버전**: 1.1.0
+**버전**: 1.3.0
 **최종 수정일**: 2025-12-12
 
 ---
@@ -581,6 +581,8 @@ end
 - [x] Easy Mode
 - [x] 4가지 쓰레기 카테고리
 - [x] 기본 UI 시스템
+- [x] AudioManager 구현 (BGM 랜덤 셔플 재생)
+- [ ] AudioManager Unity Injection 연결 (수동 작업 필요)
 
 ### Phase 2 (추후)
 - [ ] Hard Mode
@@ -732,20 +734,23 @@ Assets/Recycle Dunk/Audio/
 
 ### 13.2 AudioManager Unity 설정
 
+**구현 상태**: ✅ 완료 (Unity 컴포넌트 연결 완료, Injection 수동 설정 필요)
+
 ```yaml
 AudioManager GameObject:
+  위치: MANAGERS/AudioManager
   Components:
-    - VivenLuaBehaviour (AudioManager.lua)
-    - AudioSource (BGM용)
+    - VivenLuaBehaviour (AudioManager.lua) ✅
+    - AudioSource #1 (BGM용) ✅
       - Loop: false (자동 순환을 위해 false)
       - PlayOnAwake: false
       - Volume: 0.5
-    - AudioSource (SFX용)
+    - AudioSource #2 (SFX용) ✅
       - Loop: false
       - PlayOnAwake: false
       - Volume: 1.0
 
-Injection 필드:
+Injection 필드 (Unity 에디터에서 드래그&드롭 필요):
   # AudioSource
   - BGMSource: BGM용 AudioSource 컴포넌트
   - SFXSource: SFX용 AudioSource 컴포넌트

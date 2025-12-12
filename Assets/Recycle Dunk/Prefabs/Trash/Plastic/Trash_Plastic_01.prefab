@@ -10,27 +10,27 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 6bf946cac2f003b49a061db26e9e8097, type: 3}
       propertyPath: m_LocalScale.x
-      value: 18
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6bf946cac2f003b49a061db26e9e8097, type: 3}
       propertyPath: m_LocalScale.y
-      value: 18
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6bf946cac2f003b49a061db26e9e8097, type: 3}
       propertyPath: m_LocalScale.z
-      value: 21.225601
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6bf946cac2f003b49a061db26e9e8097, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 47.66
+      value: -24.889889
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6bf946cac2f003b49a061db26e9e8097, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 9.3
+      value: 3.2063403
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6bf946cac2f003b49a061db26e9e8097, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 60.49
+      value: 15.1175
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6bf946cac2f003b49a061db26e9e8097, type: 3}
       propertyPath: m_LocalRotation.w
@@ -230,7 +230,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VObject
   displayName: 
-  objectId: af6e04b2-1c5b-4b2a-ac5e-39c9a2d7c632
+  objectId: b6291ae8-1ae8-b629-e81a-29b6e81a29b6
   contentType: 0
   objectSyncType: 0
   isInitialized: 1

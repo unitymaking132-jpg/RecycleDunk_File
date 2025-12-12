@@ -596,6 +596,12 @@ function SpawnTrash(category, position)
     -- 활성화
     trashObject:SetActive(true)
 
+    -- VivenGrabbableModule 콜라이더 갱신 (ReturnToPool에서 Flush했으므로 재갱신 필요)
+    local grabbable = trashObject:GetComponent("VivenGrabbableModule")
+    if grabbable then
+        grabbable:FlushInteractableCollider()
+    end
+
     -- TrashItem 리셋
     if trashScript then
         trashScript.ResetTrash(category, position, poolIndex)

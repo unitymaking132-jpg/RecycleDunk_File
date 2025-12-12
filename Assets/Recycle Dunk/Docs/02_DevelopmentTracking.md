@@ -8,14 +8,14 @@
 
 ## 1. 개발 진행 현황 요약
 
-### 전체 진행률: 65%
+### 전체 진행률: 70%
 
 | 카테고리 | 진행률 | 상태 |
 |---------|--------|------|
 | 핵심 시스템 | 100% | **완료** (AudioManager 추가) |
 | UI 시스템 | 80% | **진행중** (GameHUD 연결 완료, 작동 확인) |
 | 게임 오브젝트 | 36% | 진행중 |
-| 사운드/VFX | 50% | **진행중** (AudioManager 완료, 오디오 파일 준비 완료) |
+| 사운드/VFX | 70% | **진행중** (AudioManager Unity 컴포넌트 설정 완료) |
 | 테스트/버그 수정 | 30% | **진행중** (GameHUD 테스트 완료) |
 
 ---
@@ -79,7 +79,7 @@
 | A-006 | 게임오버 효과음 | 낮음 | **완료** | - | XR_GAMEOVER.mp3 |
 | A-007 | 결과/완료 효과음 | 낮음 | **완료** | - | XR_FINISH.mp3 |
 | A-008 | UI 전환 효과음 | 낮음 | **완료** | - | XR_TURN PAGE.mp3 |
-| A-009 | AudioManager Unity 연결 | 중간 | 미시작 | - | AudioSource + 클립 연결 필요 |
+| A-009 | AudioManager Unity 연결 | 중간 | **진행중** | - | 컴포넌트 추가 완료, Injection 수동 연결 필요 |
 | V-001 | 정답 파티클 이펙트 | 낮음 | 미시작 | - | Correct VFX |
 | V-002 | 오답 파티클 이펙트 | 낮음 | 미시작 | - | Wrong VFX |
 | V-003 | 쓰레기 이탈 이펙트 | 낮음 | 미시작 | - | Lost VFX |
@@ -97,6 +97,25 @@
 ---
 
 ## 3. 개발 일지
+
+### 2025-12-12 (세션 6 - AudioManager Unity 연결)
+
+| 시간 | 작업 내용 | 상태 |
+|------|----------|------|
+| - | AudioManager GameObject에 AudioSource 2개 추가 (BGM, SFX용) | 완료 |
+| - | VivenLuaBehaviour 컴포넌트 추가 | 완료 |
+| - | AudioManager.lua 스크립트 연결 | 완료 |
+| - | Injection 슬롯 13개 생성 | 완료 |
+| - | Unity 씬 저장 (Demo.unity) | 완료 |
+
+**Unity MCP를 통한 설정**:
+- AudioSource 컴포넌트 2개 추가 완료
+- VivenLuaBehaviour에 AudioManager.lua 스크립트 연결 완료
+- Injection objectValues 슬롯 13개 생성 완료
+
+**수동 작업 필요**:
+- Unity 에디터에서 Injection 필드에 드래그&드롭으로 연결 필요
+- 순서: BGMSource, SFXSource, BGM_1~4, SFX_Pickup/Throw/Good/Miss/GameOver/Finish/UIClick
 
 ### 2025-12-12 (세션 5 - AudioManager 구현)
 
@@ -269,6 +288,7 @@
 
 | 버전 | 날짜 | 변경 내용 | 작성자 |
 |------|------|----------|--------|
+| 1.3.0 | 2025-12-12 | AudioManager Unity 컴포넌트 설정 완료 | Claude |
 | 1.2.0 | 2025-12-12 | Object Pooling 구현, GeneralGarbage→Misc 통일 | Claude |
 | 1.1.0 | 2025-12-12 | EventCallback 제거, 직접 호출 방식으로 전환 | Claude |
 | 1.0.0 | 2025-12-08 | 최초 작성 | Claude |

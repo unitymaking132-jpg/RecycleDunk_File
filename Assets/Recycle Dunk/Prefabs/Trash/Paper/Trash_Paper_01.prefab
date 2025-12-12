@@ -22,15 +22,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 55.308956
+      value: -17.240932
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -4.8394527
+      value: -10.933113
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 44.025604
+      value: -1.3468971
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fa40fdefe1cb2db4c92854661a3b7338, type: 3}
       propertyPath: m_LocalRotation.w
@@ -161,7 +161,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VObject
   displayName: 
-  objectId: 80c42fc5-2fc5-80c4-c52f-c480c52fc480
+  objectId: e1bfa694-a694-e1bf-94a6-bfe194a6bfe1
   contentType: 0
   objectSyncType: 0
   isInitialized: 1

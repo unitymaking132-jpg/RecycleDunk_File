@@ -155,10 +155,8 @@ end
 function OnRelease()
     isGrabbed = false
 
-    -- 떠다니기 재활성화
-    if floatingBehavior then
-        floatingBehavior.SetGrabbed(false)
-    end
+    -- 떠다니기는 재활성화하지 않음 (한번 잡으면 비활성화 유지)
+    -- 풀로 돌아갈 때 ResetFloating()에서 다시 활성화됨
 
     -- 햅틱 피드백
     PlayReleaseHaptic()

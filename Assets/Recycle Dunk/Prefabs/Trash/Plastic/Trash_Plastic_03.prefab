@@ -31,9 +31,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6504142964800077552}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.18704048, y: -0.022476977, z: 0.11717684, w: 0.97507966}
+  m_LocalRotation: {x: 0.18703842, y: -0.022476813, z: 0.11717746, w: 0.97507995}
   m_LocalPosition: {x: 57.98, y: 19.39, z: 42.72}
-  m_LocalScale: {x: 10, y: 10, z: 10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6526768408280485661}
@@ -78,7 +78,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Twoz.Core::Twoz.Viven.Interactions.VObject
   displayName: 
-  objectId: 80a160cd-7f16-4926-b1a6-c673d3b16b98
+  objectId: 230b3f53-3f53-230b-533f-0b23533f0b23
   contentType: 0
   objectSyncType: 0
   isInitialized: 1

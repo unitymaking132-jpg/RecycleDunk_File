@@ -49,6 +49,18 @@ GameOverUIPanel = NullableInject(GameOverUIPanel)
 ---@details ResultUI 패널 (결과 화면)
 ResultUIPanel = NullableInject(ResultUIPanel)
 
+---@type GameObject
+---@details AudioManager 오브젝트
+AudioManagerObject = NullableInject(AudioManagerObject)
+
+---@type GameObject
+---@details VFXManager 오브젝트
+VFXManagerObject = NullableInject(VFXManagerObject)
+
+---@type GameObject
+---@details Confetti 재생 위치용 Transform (선택, 없으면 카메라 앞)
+ConfettiSpawnPoint = NullableInject(ConfettiSpawnPoint)
+
 --endregion
 
 --region Variables
@@ -104,6 +116,14 @@ local uiManagers = {}
 ---@type any
 local timerCoroutine = nil
 
+---@type AudioManager
+---@details 오디오 매니저 참조
+local audioManager = nil
+
+---@type VFXManager
+---@details VFX 매니저 참조
+local vfxManager = nil
+
 --endregion
 
 --region Unity Lifecycle
@@ -135,6 +155,16 @@ function awake()
     end
     if ResultUIPanel then
         uiManagers.resultUI = ResultUIPanel:GetLuaComponent("ResultUIManager")
+    end
+
+    -- AudioManager 참조 가져오기
+    if AudioManagerObject then
+        audioManager = AudioManagerObject:GetLuaComponent("AudioManager")
+    end
+
+    -- VFXManager 참조 가져오기
+    if VFXManagerObject then
+        vfxManager = VFXManagerObject:GetLuaComponent("VFXManager")
     end
 end
 
@@ -181,12 +211,14 @@ end
 ---@details 뒤로가기 → Landing으로 이동
 function OnGoToMain()
     Debug.Log("[GameManager] OnGoToMain called")
+    StopConfettiEffect()
     ChangeState("Landing")
 end
 
 ---@details 재시작
 function OnRetryGame()
     Debug.Log("[GameManager] OnRetryGame called")
+    StopConfettiEffect()
     StartGame()
 end
 
@@ -228,6 +260,10 @@ function ChangeState(newState)
     elseif newState == "GameOver" then
         StopGame()
         ShowUI("gameOverUI")
+        -- 게임오버 사운드 재생
+        if audioManager then
+            audioManager.PlayGameOver()
+        end
     elseif newState == "TimeUp" then
         StopGame()
         ShowUI("resultUI")
@@ -235,6 +271,12 @@ function ChangeState(newState)
         if uiManagers.resultUI and scoreManager then
             local result = scoreManager.GetGameResult()
             uiManagers.resultUI.ShowResult(result)
+        end
+        -- 축하 이펙트 재생
+        PlayConfettiEffect()
+        -- 완료 사운드 재생
+        if audioManager then
+            audioManager.PlayFinish()
         end
     elseif newState == "Result" then
         ShowUI("resultUI")
@@ -245,6 +287,33 @@ end
 ---@return GameState
 function GetCurrentState()
     return currentState
+end
+
+--endregion
+
+--region Effects
+
+---@details Confetti 축하 이펙트 재생 (VFXManager 사용)
+function PlayConfettiEffect()
+    if vfxManager then
+        -- ConfettiSpawnPoint가 있으면 해당 위치, 없으면 ResultUI 위치 사용
+        local spawnPos = nil
+        if ConfettiSpawnPoint then
+            spawnPos = ConfettiSpawnPoint.transform.position
+        elseif ResultUIPanel then
+            spawnPos = ResultUIPanel.transform.position
+        else
+            -- 기본 위치 (원점 앞쪽)
+            spawnPos = CS.UnityEngine.Vector3(0, 1, 2)
+        end
+        vfxManager.PlayConfettiVFX(spawnPos)
+        Debug.Log("[GameManager] Playing confetti effect via VFXManager")
+    end
+end
+
+---@details Confetti 이펙트 정지 (Instantiate 방식은 자동 삭제되므로 빈 함수)
+function StopConfettiEffect()
+    -- Instantiate 방식은 자동으로 Destroy되므로 별도 처리 불필요
 end
 
 --endregion

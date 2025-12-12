@@ -19,15 +19,7 @@ end
 
 ---@type string
 ---@details 쓰레기통 카테고리 ("Paper", "Plastic", "Glass", "Metal", "Misc")
-BinCategory = checkInject(BinCategory)
-
----@type GameObject
----@details 정답 이펙트 오브젝트 (선택)
-CorrectEffectObject = NullableInject(CorrectEffectObject)
-
----@type GameObject
----@details 오답 이펙트 오브젝트 (선택)
-WrongEffectObject = NullableInject(WrongEffectObject)
+BinCategory = NullableInject(BinCategory)
 
 ---@type GameObject
 ---@details ScoreManager 오브젝트
@@ -36,6 +28,10 @@ ScoreManagerObject = NullableInject(ScoreManagerObject)
 ---@type GameObject
 ---@details AudioManager 오브젝트
 AudioManagerObject = NullableInject(AudioManagerObject)
+
+---@type GameObject
+---@details VFXManager 오브젝트
+VFXManagerObject = NullableInject(VFXManagerObject)
 
 --endregion
 
@@ -50,12 +46,6 @@ local correctCount = 0
 ---@type number
 local wrongCount = 0
 
----@type ParticleSystem
-local correctParticle = nil
-
----@type ParticleSystem
-local wrongParticle = nil
-
 ---@type ScoreManager
 ---@details 점수 매니저 참조
 local scoreManager = nil
@@ -64,22 +54,15 @@ local scoreManager = nil
 ---@details 오디오 매니저 참조
 local audioManager = nil
 
+---@type VFXManager
+---@details VFX 매니저 참조
+local vfxManager = nil
+
 --endregion
 
 --region Unity Lifecycle
 
 function awake()
-    -- 이펙트 컴포넌트 가져오기
-    if CorrectEffectObject then
-        correctParticle = CorrectEffectObject:GetComponent(typeof(CS.UnityEngine.ParticleSystem))
-        CorrectEffectObject:SetActive(false)
-    end
-
-    if WrongEffectObject then
-        wrongParticle = WrongEffectObject:GetComponent(typeof(CS.UnityEngine.ParticleSystem))
-        WrongEffectObject:SetActive(false)
-    end
-
     -- ScoreManager 참조 획득
     if ScoreManagerObject then
         scoreManager = ScoreManagerObject:GetLuaComponent("ScoreManager")
@@ -88,6 +71,11 @@ function awake()
     -- AudioManager 참조 획득
     if AudioManagerObject then
         audioManager = AudioManagerObject:GetLuaComponent("AudioManager")
+    end
+
+    -- VFXManager 참조 획득
+    if VFXManagerObject then
+        vfxManager = VFXManagerObject:GetLuaComponent("VFXManager")
     end
 end
 
@@ -179,14 +167,11 @@ end
 
 --region Effects
 
----@details 정답 이펙트 재생 (파티클 + 사운드)
+---@details 정답 이펙트 재생 (VFX + 사운드)
 function PlayCorrectEffect()
-    -- 파티클 이펙트
-    if CorrectEffectObject then
-        CorrectEffectObject:SetActive(true)
-        if correctParticle then
-            correctParticle:Play()
-        end
+    -- VFX 재생 (현재 위치)
+    if vfxManager then
+        vfxManager.PlayCorrectVFX(self.transform.position)
     end
 
     -- 사운드 재생
@@ -195,14 +180,11 @@ function PlayCorrectEffect()
     end
 end
 
----@details 오답 이펙트 재생 (파티클 + 사운드)
+---@details 오답 이펙트 재생 (VFX + 사운드)
 function PlayWrongEffect()
-    -- 파티클 이펙트
-    if WrongEffectObject then
-        WrongEffectObject:SetActive(true)
-        if wrongParticle then
-            wrongParticle:Play()
-        end
+    -- VFX 재생 (현재 위치)
+    if vfxManager then
+        vfxManager.PlayWrongVFX(self.transform.position)
     end
 
     -- 사운드 재생
