@@ -259,9 +259,9 @@ end
 ---@details UI 업데이트
 function UpdateUI()
     if gameHUD then
-        gameHUD.UpdateScore(currentScore)
-        gameHUD.UpdateHP(currentHP, startHP)
-        gameHUD.UpdateCombo(currentCombo)
+        gameHUD:UpdateScore(currentScore)
+        gameHUD:UpdateHP(currentHP, startHP)
+        gameHUD:UpdateCombo(currentCombo)
     end
 end
 
@@ -269,14 +269,14 @@ end
 ---@param reason string 게임오버 사유
 function NotifyGameOver(reason)
     if gameManager then
-        gameManager.OnGameOver(reason)
+        gameManager:OnGameOver(reason)
     else
         -- GameManager를 찾지 못한 경우 GameObject.Find로 시도
         local gmObj = CS.UnityEngine.GameObject.Find("GameManager")
         if gmObj then
             local gm = gmObj:GetLuaComponent("GameManager")
             if gm then
-                gm.OnGameOver(reason)
+                gm:OnGameOver(reason)
             end
         end
     end

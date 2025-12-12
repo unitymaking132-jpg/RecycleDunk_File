@@ -101,14 +101,14 @@ function OnTrashEntered(trashCategory, trashItem)
     if isCorrect then
         correctCount = correctCount + 1
         if scoreManager then
-            scoreManager.OnCorrectAnswer(trashCategory)
+            scoreManager:OnCorrectAnswer(trashCategory)
         end
         -- 3. 정답 이펙트 + 사운드
         PlayCorrectEffect()
     else
         wrongCount = wrongCount + 1
         if scoreManager then
-            scoreManager.OnWrongAnswer(trashCategory, BinCategory)
+            scoreManager:OnWrongAnswer(trashCategory, BinCategory)
         end
         -- 3. 오답 이펙트 + 사운드
         PlayWrongEffect()
@@ -163,12 +163,12 @@ end
 function PlayCorrectEffect()
     -- VFX 재생 (현재 위치)
     if vfxManager then
-        vfxManager.PlayCorrectVFX(self.transform.position)
+        vfxManager:PlayCorrectVFX(self.transform.position)
     end
 
     -- 사운드 재생
     if audioManager then
-        audioManager.PlayGood()
+        audioManager:PlayGood()
     end
 end
 
@@ -176,12 +176,12 @@ end
 function PlayWrongEffect()
     -- VFX 재생 (현재 위치)
     if vfxManager then
-        vfxManager.PlayWrongVFX(self.transform.position)
+        vfxManager:PlayWrongVFX(self.transform.position)
     end
 
     -- 사운드 재생
     if audioManager then
-        audioManager.PlayMiss()
+        audioManager:PlayMiss()
     end
 end
 

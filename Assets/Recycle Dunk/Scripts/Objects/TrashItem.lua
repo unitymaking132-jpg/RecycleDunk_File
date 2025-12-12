@@ -200,7 +200,7 @@ function OnEnterTrashBin(trashBin)
     isJudged = true
 
     -- TrashBin에 판정 위임 (판정 + ScoreManager 호출 + 이펙트 + 사운드)
-    local isCorrect = trashBin.OnTrashEntered(currentCategory, self)
+    local isCorrect = trashBin:OnTrashEntered(currentCategory, self)
 
     -- 햅틱 피드백만 처리
     if isCorrect then
@@ -292,14 +292,14 @@ function ReturnToPool()
 
     -- SpawnManager에 반환 알림
     if spawnManager and spawnManager.OnTrashDestroyed then
-        spawnManager.OnTrashDestroyed(self.gameObject, currentCategory, poolIndex)
+        spawnManager:OnTrashDestroyed(self.gameObject, currentCategory, poolIndex)
     else
         -- spawnManager가 nil이면 직접 찾아서 호출
         local spawnManagerObj = CS.UnityEngine.GameObject.Find("SpawnManager")
         if spawnManagerObj then
             local sm = spawnManagerObj:GetLuaComponent("SpawnManager")
             if sm and sm.OnTrashDestroyed then
-                sm.OnTrashDestroyed(self.gameObject, currentCategory, poolIndex)
+                sm:OnTrashDestroyed(self.gameObject, currentCategory, poolIndex)
             end
         end
     end
@@ -315,7 +315,7 @@ function OnBoundaryExit()
 
     -- HP 감소
     if scoreManager then
-        scoreManager.OnTrashLost(currentCategory)
+        scoreManager:OnTrashLost(currentCategory)
     end
 
     -- 풀로 반환

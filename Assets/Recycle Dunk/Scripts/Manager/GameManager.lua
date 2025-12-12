@@ -247,21 +247,21 @@ function ChangeState(newState)
         ShowUI("gameOverUI")
         -- 게임오버 사운드 재생
         if audioManager then
-            audioManager.PlayGameOver()
+            audioManager:PlayGameOver()
         end
     elseif newState == "TimeUp" then
         StopGame()
         ShowUI("resultUI")
         -- 결과 데이터 전달
         if uiManagers.resultUI and scoreManager then
-            local result = scoreManager.GetGameResult()
-            uiManagers.resultUI.ShowResult(result)
+            local result = scoreManager:GetGameResult()
+            uiManagers.resultUI:ShowResult(result)
         end
         -- 축하 이펙트 재생
         PlayConfettiEffect()
         -- 완료 사운드 재생
         if audioManager then
-            audioManager.PlayFinish()
+            audioManager:PlayFinish()
         end
     elseif newState == "Result" then
         ShowUI("resultUI")
@@ -291,7 +291,7 @@ function PlayConfettiEffect()
             -- 기본 위치 (원점 앞쪽)
             spawnPos = CS.UnityEngine.Vector3(0, 1, 2)
         end
-        vfxManager.PlayConfettiVFX(spawnPos)
+        vfxManager:PlayConfettiVFX(spawnPos)
     end
 end
 
@@ -317,13 +317,13 @@ function StartGame()
 
     -- ScoreManager 초기화
     if scoreManager then
-        scoreManager.InitScore(settings)
+        scoreManager:InitScore(settings)
     end
 
     -- SpawnManager 초기화 및 시작
     if spawnManager then
-        spawnManager.InitSpawn(settings)
-        spawnManager.StartSpawning()
+        spawnManager:InitSpawn(settings)
+        spawnManager:StartSpawning()
     end
 
     -- 상태 변경
@@ -338,7 +338,7 @@ function StopGame()
     StopTimer()
 
     if spawnManager then
-        spawnManager.StopSpawning()
+        spawnManager:StopSpawning()
     end
 end
 
@@ -352,7 +352,7 @@ function PauseGame()
     ChangeState("Paused")
 
     if spawnManager then
-        spawnManager.PauseSpawning()
+        spawnManager:PauseSpawning()
     end
 end
 
@@ -366,7 +366,7 @@ function ResumeGame()
     isTimerRunning = true
 
     if spawnManager then
-        spawnManager.ResumeSpawning()
+        spawnManager:ResumeSpawning()
     end
 end
 
@@ -391,7 +391,7 @@ function StartTimer()
 
                 -- GameHUD 직접 업데이트
                 if uiManagers.gameHUD then
-                    uiManagers.gameHUD.UpdateTimer(remainingTime)
+                    uiManagers.gameHUD:UpdateTimer(remainingTime)
                 end
             end
         end
