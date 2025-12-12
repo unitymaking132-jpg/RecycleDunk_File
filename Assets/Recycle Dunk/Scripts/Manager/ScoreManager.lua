@@ -11,9 +11,6 @@ local function checkInject(OBJECT)
 end
 local function NullableInject(OBJECT)
     _INJECTED_ORDER = _INJECTED_ORDER + 1
-    if OBJECT == nil then
-        Debug.Log(_INJECTED_ORDER .. "th object is missing")
-    end
     return OBJECT
 end
 
@@ -119,8 +116,6 @@ function InitScore(settings)
 
     -- UI 업데이트
     UpdateUI()
-
-    Debug.Log("[ScoreManager] Score initialized - HP: " .. currentHP)
 end
 
 ---@details 정답 처리
@@ -143,8 +138,6 @@ function OnCorrectAnswer(category)
 
     -- UI 업데이트
     UpdateUI()
-
-    Debug.Log("[ScoreManager] Correct! Score: " .. currentScore .. ", Combo: " .. currentCombo)
 end
 
 ---@details 오답 처리
@@ -165,8 +158,6 @@ function OnWrongAnswer(trashCategory, binCategory)
 
     -- UI 업데이트
     UpdateUI()
-
-    Debug.Log("[ScoreManager] Wrong! HP: " .. currentHP .. ", Category: " .. trashCategory)
 
     -- HP가 0이면 게임오버
     if currentHP <= 0 then
@@ -191,8 +182,6 @@ function OnTrashLost(category)
 
     -- UI 업데이트
     UpdateUI()
-
-    Debug.Log("[ScoreManager] Trash lost! HP: " .. currentHP)
 
     -- HP가 0이면 게임오버
     if currentHP <= 0 then

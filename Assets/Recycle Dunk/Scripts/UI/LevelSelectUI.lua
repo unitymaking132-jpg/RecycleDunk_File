@@ -10,9 +10,6 @@ local function checkInject(OBJECT)
 end
 local function NullableInject(OBJECT)
     _INJECTED_ORDER = _INJECTED_ORDER + 1
-    if OBJECT == nil then
-        Debug.Log(_INJECTED_ORDER .. "th object is missing")
-    end
     return OBJECT
 end
 
@@ -78,7 +75,6 @@ function awake()
 end
 
 function start()
-    Debug.Log("[LevelSelectUI] Initialized")
 end
 
 function onEnable()
@@ -121,7 +117,6 @@ function GetGameManager()
     if gameManagerObj then
         return gameManagerObj:GetLuaComponent("GameManager")
     end
-    Debug.Log("[LevelSelectUI] ERROR: GameManager not found")
     return nil
 end
 
@@ -145,21 +140,18 @@ end
 
 ---@details Easy 버튼 클릭
 function OnEasyClick()
-    Debug.Log("[LevelSelectUI] Easy button clicked")
     PlayClickSound()
     SelectLevel("Easy")
 end
 
 ---@details Hard 버튼 클릭
 function OnHardClick()
-    Debug.Log("[LevelSelectUI] Hard button clicked")
     PlayClickSound()
     SelectLevel("Hard")
 end
 
 ---@details 뒤로가기 버튼 클릭
 function OnBackClick()
-    Debug.Log("[LevelSelectUI] Back button clicked")
     PlayClickSound()
 
     local gameManager = GetGameManager()
@@ -175,8 +167,6 @@ end
 ---@details 레벨 선택
 ---@param level string 난이도 ("Easy", "Hard")
 function SelectLevel(level)
-    Debug.Log("[LevelSelectUI] Level selected: " .. level)
-
     local gameManager = GetGameManager()
     if gameManager then
         gameManager.OnLevelSelected(level)

@@ -11,9 +11,6 @@ local function checkInject(OBJECT)
 end
 local function NullableInject(OBJECT)
     _INJECTED_ORDER = _INJECTED_ORDER + 1
-    if OBJECT == nil then
-        Debug.Log(_INJECTED_ORDER .. "th object is missing")
-    end
     return OBJECT
 end
 
@@ -85,7 +82,6 @@ function awake()
 end
 
 function start()
-    Debug.Log("[ResultUIManager] Initialized")
 end
 
 function onEnable()
@@ -126,7 +122,6 @@ end
 
 ---@details Retry 버튼 클릭 → GameManager 직접 호출
 function OnRetryClick()
-    Debug.Log("[ResultUIManager] Retry clicked")
     PlayClickSound()
 
     local gameManagerObj = CS.UnityEngine.GameObject.Find("GameManager")
@@ -146,7 +141,6 @@ end
 ---@param result table GameResult 데이터
 function ShowResult(result)
     if not result then
-        Debug.LogWarning("[ResultUIManager] No result data provided")
         return
     end
 
@@ -178,8 +172,6 @@ function ShowResult(result)
             hintText.text = "Great job! Keep up the good work!"
         end
     end
-
-    Debug.Log("[ResultUIManager] Result displayed - Score: " .. result.totalScore .. ", Accuracy: " .. result.accuracy .. "%")
 end
 
 ---@details 카테고리 표시 이름 반환

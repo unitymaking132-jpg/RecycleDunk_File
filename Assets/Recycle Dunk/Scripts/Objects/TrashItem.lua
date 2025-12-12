@@ -10,9 +10,6 @@ local function checkInject(OBJECT)
 end
 local function NullableInject(OBJECT)
     _INJECTED_ORDER = _INJECTED_ORDER + 1
-    if OBJECT == nil then
-        Debug.Log(_INJECTED_ORDER .. "th object is missing")
-    end
     return OBJECT
 end
 
@@ -104,19 +101,26 @@ end
 function start()
     -- 카테고리 유효성 검사
     if not IsValidCategory(TrashCategory) then
-        Debug.Log("[TrashItem] Invalid category: " .. tostring(TrashCategory) .. ", using Misc")
         TrashCategory = "Misc"
     end
     currentCategory = TrashCategory
-
-    Debug.Log("[TrashItem] Initialized - Category: " .. TrashCategory)
 end
 
 function onEnable()
+    -- grabbableModule이 null이면 다시 가져오기 시도
+    if not grabbableModule then
+        grabbableModule = self:GetComponent("VivenGrabbableModule")
+    end
+
     -- 이벤트 리스너 등록
     if grabbableModule then
         grabbableModule.onGrabEvent:AddListener(OnGrab)
         grabbableModule.onReleaseEvent:AddListener(OnRelease)
+    end
+
+    -- floatingBehavior 확인
+    if not floatingBehavior then
+        floatingBehavior = self:GetLuaComponent("FloatingBehavior")
     end
 
     -- 상태 초기화
@@ -142,26 +146,24 @@ function OnGrab()
 
     -- 떠다니기 비활성화
     if floatingBehavior then
-        floatingBehavior.SetGrabbed(true)
+        floatingBehavior:SetGrabbed(true)
     end
 
     -- 햅틱 피드백
     PlayGrabHaptic()
-
-    Debug.Log("[TrashItem] Grabbed - Category: " .. TrashCategory)
 end
 
 ---@details 놓기 이벤트 핸들러
 function OnRelease()
     isGrabbed = false
 
-    -- 떠다니기는 재활성화하지 않음 (한번 잡으면 비활성화 유지)
-    -- 풀로 돌아갈 때 ResetFloating()에서 다시 활성화됨
+    -- 떠다니기 재활성화 (놓았을 때 다시 떠다니게)
+    if floatingBehavior then
+        floatingBehavior:SetGrabbed(false)
+    end
 
     -- 햅틱 피드백
     PlayReleaseHaptic()
-
-    Debug.Log("[TrashItem] Released - Category: " .. TrashCategory)
 end
 
 --endregion
@@ -200,8 +202,6 @@ function OnEnterTrashBin(trashBin)
     else
         PlayWrongHaptic()
     end
-
-    Debug.Log("[TrashItem] Entered bin - Category: " .. currentCategory .. ", IsCorrect: " .. tostring(isCorrect))
 
     -- 풀로 반환
     ReturnToPool()
@@ -255,10 +255,8 @@ function ResetTrash(category, position, index)
 
     -- 떠다니기 리셋
     if floatingBehavior then
-        floatingBehavior.ResetFloating(spawnPosition, nil)
+        floatingBehavior:ResetFloating(spawnPosition, nil)
     end
-
-    Debug.Log("[TrashItem] ResetTrash - Category: " .. currentCategory .. ", PoolIndex: " .. poolIndex)
 end
 
 ---@details 카테고리 반환
@@ -284,15 +282,12 @@ function ReturnToPool()
     -- 강제 릴리즈
     if grabbableModule then
         grabbableModule:Release()
-        grabbableModule:FlushInteractableCollider()
     end
 
     -- SpawnManager에 반환 알림
     if spawnManager and spawnManager.OnTrashDestroyed then
         spawnManager.OnTrashDestroyed(self.gameObject, currentCategory, poolIndex)
     end
-
-    Debug.Log("[TrashItem] ReturnToPool - Category: " .. currentCategory .. ", PoolIndex: " .. poolIndex)
 end
 
 ---@details 경계 이탈 처리
@@ -307,8 +302,6 @@ function OnBoundaryExit()
     if scoreManager then
         scoreManager.OnTrashLost(currentCategory)
     end
-
-    Debug.Log("[TrashItem] Lost (boundary exit) - Category: " .. currentCategory)
 
     -- 풀로 반환
     ReturnToPool()

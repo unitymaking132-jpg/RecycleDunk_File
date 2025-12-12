@@ -10,9 +10,6 @@ local function checkInject(OBJECT)
 end
 local function NullableInject(OBJECT)
     _INJECTED_ORDER = _INJECTED_ORDER + 1
-    if OBJECT == nil then
-        Debug.Log(_INJECTED_ORDER .. "th object is missing")
-    end
     return OBJECT
 end
 
@@ -68,16 +65,33 @@ function awake()
     noiseOffsetY = math.random() * 100
     noiseOffsetZ = math.random() * 100
 
-    currentOffset = Vector3.zero
+    -- 떠다니기 비활성화 (ResetFloating 호출 전까지)
+    isFloating = false
+    isGrabbed = false
+
+    -- spawnPosition은 ResetFloating에서 설정됨 (awake 시점에는 nil)
+    spawnPosition = nil
+    currentOffset = nil
 end
 
 function start()
-    -- 스폰 위치 저장
-    spawnPosition = self.transform.position
+    -- 풀링 시스템 사용 시 start()에서는 아무것도 하지 않음
+    -- ResetFloating()이 호출될 때 초기화됨
 end
 
 function update()
-    if not isFloating or isGrabbed then
+    -- 떠다니기 비활성화 상태면 스킵
+    if not isFloating then
+        return
+    end
+
+    -- 잡힌 상태면 스킵
+    if isGrabbed then
+        return
+    end
+
+    -- spawnPosition이 nil이거나 x가 nil이면 스킵
+    if not spawnPosition or spawnPosition.x == nil then
         return
     end
 
@@ -197,8 +211,10 @@ end
 ---@param position Vector3 새 스폰 위치
 ---@param settings table|nil 설정 (nil이면 기본값 유지)
 function ResetFloating(position, settings)
-    -- 스폰 위치 설정
-    spawnPosition = position or self.transform.position
+    -- 스폰 위치 설정 (position이 nil이면 기본값 유지)
+    if position then
+        spawnPosition = position
+    end
 
     -- 설정 적용
     if settings then
@@ -214,13 +230,11 @@ function ResetFloating(position, settings)
     noiseOffsetZ = math.random() * 100
 
     -- 현재 오프셋 초기화
-    currentOffset = Vector3.zero
+    currentOffset = Vector3(0, 0, 0)
 
     -- 상태 초기화
     isFloating = true
     isGrabbed = false
-
-    Debug.Log("[FloatingBehavior] ResetFloating at " .. tostring(spawnPosition))
 end
 
 --endregion

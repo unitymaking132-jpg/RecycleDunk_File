@@ -10,9 +10,6 @@ local function checkInject(OBJECT)
 end
 local function NullableInject(OBJECT)
     _INJECTED_ORDER = _INJECTED_ORDER + 1
-    if OBJECT == nil then
-        Debug.Log(_INJECTED_ORDER .. "th object is missing")
-    end
     return OBJECT
 end
 
@@ -51,7 +48,6 @@ function awake()
 end
 
 function start()
-    Debug.Log("[LandingUIManager] Initialized")
 end
 
 function onEnable()
@@ -85,7 +81,6 @@ function GetGameManager()
     if gameManagerObj then
         return gameManagerObj:GetLuaComponent("GameManager")
     end
-    Debug.Log("[LandingUIManager] ERROR: GameManager not found")
     return nil
 end
 
@@ -109,7 +104,6 @@ end
 
 ---@details How to Play 버튼 클릭
 function OnHowToPlayClick()
-    Debug.Log("[LandingUIManager] How to Play clicked")
     PlayClickSound()
 
     local gameManager = GetGameManager()
@@ -120,7 +114,6 @@ end
 
 ---@details Game Start 버튼 클릭
 function OnGameStartClick()
-    Debug.Log("[LandingUIManager] Game Start clicked")
     PlayClickSound()
 
     local gameManager = GetGameManager()

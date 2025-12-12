@@ -11,9 +11,6 @@ local function checkInject(OBJECT)
 end
 local function NullableInject(OBJECT)
     _INJECTED_ORDER = _INJECTED_ORDER + 1
-    if OBJECT == nil then
-        Debug.Log(_INJECTED_ORDER .. "th object is missing")
-    end
     return OBJECT
 end
 
@@ -41,7 +38,6 @@ function awake()
 end
 
 function start()
-    Debug.Log("[GameOverUI] Initialized")
 end
 
 function onEnable()
@@ -81,7 +77,6 @@ end
 
 ---@details Retry 버튼 클릭 → GameManager 직접 호출
 function OnRetryClick()
-    Debug.Log("[GameOverUI] Retry clicked")
     PlayClickSound()
 
     local gameManagerObj = CS.UnityEngine.GameObject.Find("GameManager")
@@ -100,7 +95,6 @@ end
 ---@details 게임오버 애니메이션 재생
 function PlayGameOverAnimation()
     -- TODO: 페이드인 또는 스케일 애니메이션 추가
-    Debug.Log("[GameOverUI] Game Over!")
 end
 
 --endregion

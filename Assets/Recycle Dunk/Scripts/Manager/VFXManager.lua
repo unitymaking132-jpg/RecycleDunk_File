@@ -10,9 +10,6 @@ local function checkInject(OBJECT)
 end
 local function NullableInject(OBJECT)
     _INJECTED_ORDER = _INJECTED_ORDER + 1
-    if OBJECT == nil then
-        Debug.Log(_INJECTED_ORDER .. "th object is missing")
-    end
     return OBJECT
 end
 
@@ -50,18 +47,10 @@ local isInitialized = false
 
 function awake()
     isInitialized = true
-    Debug.Log("[VFXManager] Initialized")
 end
 
 function start()
-    -- VFX 프리팹 유효성 검사
-    local count = 0
-    if VFX_Correct then count = count + 1 end
-    if VFX_Wrong then count = count + 1 end
-    if VFX_Confetti then count = count + 1 end
-    if VFX_Combo then count = count + 1 end
-
-    Debug.Log("[VFXManager] Loaded " .. count .. " VFX prefabs")
+    -- VFX 프리팹 유효성 검사 (초기화만)
 end
 
 --endregion
@@ -75,7 +64,6 @@ end
 ---@return GameObject 생성된 VFX 오브젝트
 function SpawnVFX(prefab, position, duration)
     if prefab == nil then
-        Debug.LogWarning("[VFXManager] VFX prefab is nil")
         return nil
     end
 
@@ -88,7 +76,6 @@ function SpawnVFX(prefab, position, duration)
     if vfxObj then
         -- 일정 시간 후 자동 삭제
         CS.UnityEngine.Object.Destroy(vfxObj, dur)
-        Debug.Log("[VFXManager] Spawned VFX at " .. tostring(position))
     end
 
     return vfxObj
@@ -102,7 +89,6 @@ end
 ---@return GameObject
 function SpawnVFXAtTransform(prefab, transform, offset, duration)
     if transform == nil then
-        Debug.LogWarning("[VFXManager] Transform is nil")
         return nil
     end
 

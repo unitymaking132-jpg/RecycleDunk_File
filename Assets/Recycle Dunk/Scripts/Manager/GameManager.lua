@@ -11,9 +11,6 @@ local function checkInject(OBJECT)
 end
 local function NullableInject(OBJECT)
     _INJECTED_ORDER = _INJECTED_ORDER + 1
-    if OBJECT == nil then
-        Debug.Log(_INJECTED_ORDER .. "th object is missing")
-    end
     return OBJECT
 end
 
@@ -89,16 +86,16 @@ local difficultySettings = {
     Easy = {
         gameTime = 60,
         startHP = 5,
-        spawnInterval = 3,
-        maxTrashCount = 5,
+        spawnInterval = 2,      -- 3 → 2초 (더 자주 스폰)
+        maxTrashCount = 7,      -- 5 → 7개 (더 많이)
         correctScore = 100,
         comboBonus = 50
     },
     Hard = {
         gameTime = 90,
         startHP = 3,
-        spawnInterval = 2,
-        maxTrashCount = 8,
+        spawnInterval = 1.5,    -- 2 → 1.5초 (더 빠르게)
+        maxTrashCount = 10,     -- 8 → 10개 (더 많이)
         correctScore = 150,
         comboBonus = 75
     }
@@ -174,8 +171,6 @@ function start()
 
     -- 초기 상태 설정 (Guide UI만 표시)
     ChangeState("Guide")
-
-    Debug.Log("[GameManager] Initialized - Starting with Guide UI")
 end
 
 --endregion
@@ -184,40 +179,34 @@ end
 
 ---@details 가이드 완료 → Landing으로 이동
 function OnGuideComplete()
-    Debug.Log("[GameManager] OnGuideComplete called")
     ChangeState("Landing")
 end
 
 ---@details How to Play 클릭 → Guide로 이동
 function OnGoToGuide()
-    Debug.Log("[GameManager] OnGoToGuide called")
     ChangeState("Guide")
 end
 
 ---@details Game Start 클릭 → LevelSelect로 이동
 function GoToLevelSelect()
-    Debug.Log("[GameManager] GoToLevelSelect called")
     ChangeState("LevelSelect")
 end
 
 ---@details 레벨 선택 완료 → 게임 시작
 ---@param difficulty string 선택한 난이도
 function OnLevelSelected(difficulty)
-    Debug.Log("[GameManager] OnLevelSelected: " .. tostring(difficulty))
     currentDifficulty = difficulty or "Easy"
     StartGame()
 end
 
 ---@details 뒤로가기 → Landing으로 이동
 function OnGoToMain()
-    Debug.Log("[GameManager] OnGoToMain called")
     StopConfettiEffect()
     ChangeState("Landing")
 end
 
 ---@details 재시작
 function OnRetryGame()
-    Debug.Log("[GameManager] OnRetryGame called")
     StopConfettiEffect()
     StartGame()
 end
@@ -225,7 +214,6 @@ end
 ---@details 게임오버 처리 (ScoreManager에서 호출)
 ---@param reason string 게임오버 사유
 function OnGameOver(reason)
-    Debug.Log("[GameManager] OnGameOver: " .. tostring(reason))
     if reason == "HP_ZERO" then
         ChangeState("GameOver")
     end
@@ -238,10 +226,7 @@ end
 ---@details 게임 상태 변경
 ---@param newState GameState 새로운 상태
 function ChangeState(newState)
-    local previousState = currentState
     currentState = newState
-
-    Debug.Log("[GameManager] State: " .. previousState .. " -> " .. newState)
 
     -- 모든 UI 비활성화
     HideAllUI()
@@ -307,7 +292,6 @@ function PlayConfettiEffect()
             spawnPos = CS.UnityEngine.Vector3(0, 1, 2)
         end
         vfxManager.PlayConfettiVFX(spawnPos)
-        Debug.Log("[GameManager] Playing confetti effect via VFXManager")
     end
 end
 
@@ -338,11 +322,8 @@ function StartGame()
 
     -- SpawnManager 초기화 및 시작
     if spawnManager then
-        Debug.Log("[GameManager] Starting SpawnManager")
         spawnManager.InitSpawn(settings)
         spawnManager.StartSpawning()
-    else
-        Debug.LogWarning("[GameManager] SpawnManager is nil!")
     end
 
     -- 상태 변경
@@ -350,8 +331,6 @@ function StartGame()
 
     -- 타이머 시작
     StartTimer()
-
-    Debug.Log("[GameManager] Game started - Difficulty: " .. currentDifficulty)
 end
 
 ---@details 게임 정지
@@ -361,8 +340,6 @@ function StopGame()
     if spawnManager then
         spawnManager.StopSpawning()
     end
-
-    Debug.Log("[GameManager] Game stopped")
 end
 
 ---@details 게임 일시정지
@@ -377,8 +354,6 @@ function PauseGame()
     if spawnManager then
         spawnManager.PauseSpawning()
     end
-
-    Debug.Log("[GameManager] Game paused")
 end
 
 ---@details 게임 재개
@@ -393,8 +368,6 @@ function ResumeGame()
     if spawnManager then
         spawnManager.ResumeSpawning()
     end
-
-    Debug.Log("[GameManager] Game resumed")
 end
 
 --endregion

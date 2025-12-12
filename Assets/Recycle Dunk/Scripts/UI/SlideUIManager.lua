@@ -11,9 +11,6 @@ local function checkInject(OBJECT)
 end
 local function NullableInject(OBJECT)
     _INJECTED_ORDER = _INJECTED_ORDER + 1
-    if OBJECT == nil then
-        Debug.Log(_INJECTED_ORDER .. "th object is missing")
-    end
     return OBJECT
 end
 
@@ -132,7 +129,6 @@ function awake()
         completeButtonComp = CompleteButton:GetComponent(typeof(CS.UnityEngine.UI.Button))
     end
 
-    Debug.Log("[SlideUIManager] Initialized with " .. totalSlides .. " slides")
 end
 
 function start()
@@ -144,17 +140,12 @@ function onEnable()
     -- 버튼 이벤트 등록
     if prevButtonComp then
         prevButtonComp.onClick:AddListener(OnPrevClick)
-        Debug.Log("[SlideUIManager] PrevButton listener added")
     end
     if nextButtonComp then
         nextButtonComp.onClick:AddListener(OnNextClick)
-        Debug.Log("[SlideUIManager] NextButton listener added")
     end
     if completeButtonComp then
         completeButtonComp.onClick:AddListener(OnCompleteClick)
-        Debug.Log("[SlideUIManager] CompleteButton listener added")
-    else
-        Debug.Log("[SlideUIManager] WARNING: CompleteButton component is nil!")
     end
 
     -- 첫 슬라이드로 리셋 (슬라이드가 있으면)
@@ -162,7 +153,6 @@ function onEnable()
         ShowSlide(1)
     else
         -- 슬라이드가 없으면 Complete 버튼만 활성화
-        Debug.Log("[SlideUIManager] No slides, showing CompleteButton only")
         if CompleteButton then
             CompleteButton:SetActive(true)
         end
@@ -222,7 +212,6 @@ end
 
 ---@details 완료 버튼 클릭
 function OnCompleteClick()
-    Debug.Log("[SlideUIManager] Complete button clicked!")
     PlayClickSound()
 
     -- GameManager를 찾아서 직접 호출
@@ -231,12 +220,7 @@ function OnCompleteClick()
         local gameManager = gameManagerObj:GetLuaComponent("GameManager")
         if gameManager then
             gameManager.OnGuideComplete()
-            Debug.Log("[SlideUIManager] Called GameManager.OnGuideComplete()")
-        else
-            Debug.Log("[SlideUIManager] ERROR: GameManager Lua component not found")
         end
-    else
-        Debug.Log("[SlideUIManager] ERROR: GameManager GameObject not found")
     end
 end
 
@@ -270,8 +254,6 @@ function ShowSlide(index)
 
     -- 인디케이터 업데이트
     UpdateIndicators()
-
-    Debug.Log("[SlideUIManager] Showing slide " .. currentIndex .. "/" .. totalSlides)
 end
 
 ---@details 버튼 상태 업데이트

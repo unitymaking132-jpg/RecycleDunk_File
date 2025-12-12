@@ -12,9 +12,6 @@ local function checkInject(OBJECT)
 end
 local function NullableInject(OBJECT)
     _INJECTED_ORDER = _INJECTED_ORDER + 1
-    if OBJECT == nil then
-        Debug.Log(_INJECTED_ORDER .. "th object is missing")
-    end
     return OBJECT
 end
 
@@ -135,29 +132,13 @@ local isFading = false
 --region Unity Lifecycle
 
 function awake()
-    Debug.Log("[AudioManager] Initializing...")
-
     -- AudioSource 컴포넌트 가져오기 (BGMSource/SFXSource는 GameObject)
     if BGMSource then
         bgmAudioSource = BGMSource:GetComponent(typeof(CS.UnityEngine.AudioSource))
-        if bgmAudioSource then
-            Debug.Log("[AudioManager] BGM AudioSource component found")
-        else
-            Debug.Log("[AudioManager] ERROR: BGM AudioSource component not found on BGMSource GameObject")
-        end
-    else
-        Debug.Log("[AudioManager] ERROR: BGMSource GameObject is nil")
     end
 
     if SFXSource then
         sfxAudioSource = SFXSource:GetComponent(typeof(CS.UnityEngine.AudioSource))
-        if sfxAudioSource then
-            Debug.Log("[AudioManager] SFX AudioSource component found")
-        else
-            Debug.Log("[AudioManager] ERROR: SFX AudioSource component not found on SFXSource GameObject")
-        end
-    else
-        Debug.Log("[AudioManager] ERROR: SFXSource GameObject is nil")
     end
 
     -- BGM 리스트 구성
@@ -167,14 +148,11 @@ function awake()
     if BGM_3 then table.insert(bgmList, BGM_3) end
     if BGM_4 then table.insert(bgmList, BGM_4) end
 
-    Debug.Log("[AudioManager] BGM list created with " .. #bgmList .. " tracks")
-
     -- BGM AudioSource 설정 (loop=false로 설정하여 곡 끝 감지)
     if bgmAudioSource then
         bgmAudioSource.loop = false
         bgmAudioSource.playOnAwake = false
         bgmAudioSource.volume = bgmVolume
-        Debug.Log("[AudioManager] BGM Source configured (loop=false for shuffle)")
     end
 
     -- SFX AudioSource 설정
@@ -182,14 +160,12 @@ function awake()
         sfxAudioSource.loop = false
         sfxAudioSource.playOnAwake = false
         sfxAudioSource.volume = sfxVolume
-        Debug.Log("[AudioManager] SFX Source configured")
     end
 
     -- 초기 셔플 생성
     ShuffleBGMOrder()
 
     isInitialized = true
-    Debug.Log("[AudioManager] Initialized successfully")
 end
 
 function start()
@@ -225,7 +201,6 @@ function ShuffleBGMOrder()
     end
 
     shufflePosition = 0
-    Debug.Log("[AudioManager] BGM order shuffled")
 end
 
 ---@details 다음 BGM 인덱스 가져오기 (셔플 순서 기반)
@@ -260,20 +235,17 @@ end
 ---@details BGM 플레이리스트 시작 (랜덤 순환 재생)
 function StartBGMPlaylist()
     if #bgmList == 0 then
-        Debug.Log("[AudioManager] No BGM tracks available")
         return
     end
 
     bgmAutoPlay = true
     PlayNextBGM()
-    Debug.Log("[AudioManager] BGM playlist started")
 end
 
 ---@details BGM 플레이리스트 정지
 function StopBGMPlaylist()
     bgmAutoPlay = false
     StopBGM()
-    Debug.Log("[AudioManager] BGM playlist stopped")
 end
 
 ---@details 다음 BGM 재생
@@ -291,7 +263,6 @@ end
 ---@param index number BGM 인덱스 (1부터 시작)
 function PlayBGMByIndex(index)
     if index < 1 or index > #bgmList then
-        Debug.Log("[AudioManager] Invalid BGM index: " .. tostring(index))
         return
     end
 
@@ -303,26 +274,22 @@ end
 ---@param clip AudioClip 재생할 오디오 클립
 function PlayBGM(clip)
     if not isInitialized or not bgmAudioSource then
-        Debug.Log("[AudioManager] WARNING: BGM Source not ready")
         return
     end
 
     if clip == nil then
-        Debug.Log("[AudioManager] WARNING: BGM clip is nil")
         return
     end
 
     bgmAudioSource.clip = clip
     bgmAudioSource.volume = bgmMuted and 0 or bgmVolume
     bgmAudioSource:Play()
-    Debug.Log("[AudioManager] Playing BGM: " .. clip.name)
 end
 
 ---@details BGM 정지
 function StopBGM()
     if bgmAudioSource then
         bgmAudioSource:Stop()
-        Debug.Log("[AudioManager] BGM stopped")
     end
 end
 
@@ -384,7 +351,6 @@ end
 ---@param clip AudioClip 재생할 오디오 클립
 function PlaySFX(clip)
     if not isInitialized or not sfxAudioSource then
-        Debug.Log("[AudioManager] WARNING: SFX Source not ready")
         return
     end
 

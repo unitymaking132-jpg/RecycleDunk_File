@@ -11,9 +11,6 @@ local function checkInject(OBJECT)
 end
 local function NullableInject(OBJECT)
     _INJECTED_ORDER = _INJECTED_ORDER + 1
-    if OBJECT == nil then
-        Debug.Log(_INJECTED_ORDER .. "th object is missing")
-    end
     return OBJECT
 end
 
@@ -69,15 +66,9 @@ local maxHP = 5
 function awake()
     -- 타이머 텍스트 컴포넌트 가져오기
     timerText = TimerTextObject:GetComponent(typeof(TMP_Text))
-    if timerText == nil then
-        Debug.LogWarning("[GameHUD] TimerTextObject에서 TMP_Text를 찾을 수 없습니다")
-    end
 
     -- HP Slider 컴포넌트 가져오기
     hpSlider = HPSliderObject:GetComponent(typeof(CS.UnityEngine.UI.Slider))
-    if hpSlider == nil then
-        Debug.LogWarning("[GameHUD] HPSliderObject에서 Slider를 찾을 수 없습니다")
-    end
 
     -- 선택적 컴포넌트들
     if HPTextObject then
@@ -91,8 +82,6 @@ function awake()
     if ComboTextObject then
         comboText = ComboTextObject:GetComponent(typeof(TMP_Text))
     end
-
-    Debug.Log("[GameHUD] Awake 완료")
 end
 
 function start()

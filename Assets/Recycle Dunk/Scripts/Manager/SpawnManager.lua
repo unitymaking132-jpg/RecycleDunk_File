@@ -2,8 +2,6 @@
 --- 씬에 미리 배치된 오브젝트를 풀에서 가져와 재사용
 --- VIVEN SDK에서 동적 VObject Instantiate가 불가능하므로 풀링 방식 사용
 
--- EventCallback 모듈 제거됨 (직접 메서드 호출 방식으로 전환)
-
 --region Injection list
 local _INJECTED_ORDER = 0
 local function checkInject(OBJECT)
@@ -13,9 +11,6 @@ local function checkInject(OBJECT)
 end
 local function NullableInject(OBJECT)
     _INJECTED_ORDER = _INJECTED_ORDER + 1
-    if OBJECT == nil then
-        Debug.Log(_INJECTED_ORDER .. "th object is missing")
-    end
     return OBJECT
 end
 
@@ -99,6 +94,10 @@ local scoreManager = nil
 ---@details 초기화 완료 여부
 local isInitialized = false
 
+---@type boolean
+---@details 풀 초기화 중 여부 (FlushAllGrabbables 스킵용)
+local isPoolInitializing = false
+
 --endregion
 
 --region Pool Variables
@@ -143,9 +142,47 @@ local poolInitialPose = {
     Misc = {}
 }
 
+---@type table<string, table>
+---@details 카테고리별 MeshRenderer 테이블 (배열의 배열)
+local poolMeshRenderers = {
+    Paper = {},
+    Plastic = {},
+    Glass = {},
+    Metal = {},
+    Misc = {}
+}
+
+---@type table<string, table>
+---@details 카테고리별 Collider 테이블 (배열의 배열)
+local poolColliders = {
+    Paper = {},
+    Plastic = {},
+    Glass = {},
+    Metal = {},
+    Misc = {}
+}
+
+---@type Vector3
+---@details 숨김 위치 (풀에서 비활성화 시 이동할 위치)
+local HIDE_POSITION = nil
+
 ---@type table<string, GameObject>
 ---@details 카테고리별 풀 부모 매핑
 local poolParents = {}
+
+---@type table<string, table>
+---@details 카테고리별 VivenGrabbableModule 테이블 (배열)
+local poolGrabbables = {
+    Paper = {},
+    Plastic = {},
+    Glass = {},
+    Metal = {},
+    Misc = {}
+}
+
+---@type table
+---@details 모든 풀의 VivenGrabbableModule 목록 (Flush용)
+local allGrabbableModules = {}
 
 --endregion
 
@@ -154,10 +191,12 @@ local poolParents = {}
 function awake()
     -- Pool injection 체크 - 하나도 없으면 스킵 (테스트 모드)
     if not PaperPool and not PlasticPool and not GlassPool and not MetalPool and not MiscPool then
-        Debug.Log("[SpawnManager] No pools injected - disabled (test mode)")
         isInitialized = false
         return
     end
+
+    -- 숨김 위치 초기화 (아주 먼 곳)
+    HIDE_POSITION = Vector3(0, -9999, 0)
 
     -- 풀 부모 매핑 설정
     poolParents = {
@@ -175,9 +214,6 @@ function awake()
             local bounds = spawnZoneCollider.bounds
             spawnBoundsMin = bounds.min
             spawnBoundsMax = bounds.max
-            Debug.Log("[SpawnManager] Spawn zone bounds - Min: " .. tostring(spawnBoundsMin) .. ", Max: " .. tostring(spawnBoundsMax))
-        else
-            Debug.Log("[SpawnManager] SpawnZoneObject does not have BoxCollider!")
         end
     end
 
@@ -186,18 +222,20 @@ function awake()
         scoreManager = ScoreManagerObject:GetLuaComponent("ScoreManager")
     end
 
-    -- 풀 초기화
+    -- 풀 초기화 (초기화 중 FlushAllGrabbables 스킵)
+    isPoolInitializing = true
     InitializePools()
+    isPoolInitializing = false
+
+    -- 주의: awake()에서는 FlushAllGrabbables 호출하지 않음
+    -- VIVEN SDK가 완전히 초기화된 후 (InitSpawn 또는 StartSpawning에서) 호출
 
     -- 초기화 완료 플래그 설정
     isInitialized = true
-
-    Debug.Log("[SpawnManager] Initialized with Object Pooling")
 end
 
 function start()
     if not isInitialized then return end
-    -- 이벤트 리스너 등록
     RegisterEventListeners()
 end
 
@@ -217,18 +255,15 @@ end
 --region Event Listeners
 
 function RegisterEventListeners()
-    -- EventCallback 제거됨 - 직접 호출 방식 사용
 end
 
 function UnregisterEventListeners()
-    -- EventCallback 제거됨 - 직접 호출 방식 사용
 end
 
----@details 쓰레기 제거 이벤트 핸들러 (EventCallback에서 호출)
+---@details 쓰레기 제거 이벤트 핸들러
 ---@param trashObject GameObject 제거된 쓰레기 오브젝트
 ---@param category string 카테고리
 function OnTrashDestroyedEvent(trashObject, category)
-    -- activeTrashItems에서 제거
     for i = #activeTrashItems, 1, -1 do
         if activeTrashItems[i].object == trashObject then
             table.remove(activeTrashItems, i)
@@ -247,13 +282,11 @@ end
 ---@param scriptTable table 스크립트 저장 테이블
 ---@param scriptName string 스크립트 이름
 function GetChildren(parentObj, objTable, scriptTable, scriptName)
-    -- 테이블 초기화
     for i = 1, #objTable do objTable[i] = nil end
     if scriptTable then
         for i = 1, #scriptTable do scriptTable[i] = nil end
     end
 
-    -- 자식 수집
     for i = 0, parentObj.transform.childCount - 1 do
         local child = parentObj.transform:GetChild(i).gameObject
         objTable[#objTable + 1] = child
@@ -270,27 +303,23 @@ function InitializePools()
     for category, poolParent in pairs(poolParents) do
         if poolParent then
             InitializePool(category, poolParent)
-        else
-            Debug.Log("[SpawnManager] Pool parent not found for: " .. category)
         end
     end
-
-    Debug.Log("[SpawnManager] All pools initialized")
 end
 
 ---@details 단일 카테고리 풀 초기화
 ---@param category string 카테고리명
 ---@param poolParent GameObject 풀 부모 오브젝트
 function InitializePool(category, poolParent)
-    if not poolParent then
-        Debug.Log("[SpawnManager] Pool parent is nil for: " .. category)
-        return
-    end
+    if not poolParent then return end
 
     -- 기존 테이블 초기화
     poolObjects[category] = {}
     poolScripts[category] = {}
     poolInitialPose[category] = {}
+    poolMeshRenderers[category] = {}
+    poolColliders[category] = {}
+    poolGrabbables[category] = {}
     pools[category].available = {}
     pools[category].inUse = {}
 
@@ -305,6 +334,29 @@ function InitializePool(category, poolParent)
             Rot = obj.transform.rotation
         }
 
+        -- MeshRenderer 수집
+        local meshRenderers = obj:GetComponentsInChildren(typeof(CS.UnityEngine.MeshRenderer))
+        local tempMeshes = {}
+        for j = 0, meshRenderers.Length - 1 do
+            tempMeshes[#tempMeshes + 1] = meshRenderers[j]
+        end
+        poolMeshRenderers[category][i] = tempMeshes
+
+        -- Collider 수집
+        local colliders = obj:GetComponentsInChildren(typeof(CS.UnityEngine.Collider))
+        local tempColliders = {}
+        for j = 0, colliders.Length - 1 do
+            tempColliders[#tempColliders + 1] = colliders[j]
+        end
+        poolColliders[category][i] = tempColliders
+
+        -- VivenGrabbableModule 수집
+        local grabbable = obj:GetComponent("VivenGrabbableModule")
+        poolGrabbables[category][i] = grabbable
+        if grabbable then
+            allGrabbableModules[#allGrabbableModules + 1] = grabbable
+        end
+
         -- available 풀에 추가
         table.insert(pools[category].available, i)
 
@@ -316,11 +368,61 @@ function InitializePool(category, poolParent)
             poolScripts[category][i].SetPoolIndex(i)
         end
 
-        -- 비활성화
-        obj:SetActive(false)
+        -- 비활성화 (MeshRenderer/Collider 끄기 + 위치 이동)
+        SetPoolObjectVisible(category, i, false)
+    end
+end
+
+---@details 모든 Grabbable의 콜라이더 상태 갱신 (VIVEN SDK 내부 상태 동기화)
+function FlushAllGrabbables()
+    -- 풀 초기화 중에는 스킵 (아직 모듈이 완전히 수집되지 않음)
+    if isPoolInitializing then
+        return
     end
 
-    Debug.Log("[SpawnManager] Pool initialized: " .. category .. " (" .. #poolObjects[category] .. " items)")
+    for i = 1, #allGrabbableModules do
+        local grabbable = allGrabbableModules[i]
+        if grabbable then
+            -- pcall로 안전하게 호출 (VIVEN SDK 내부 상태가 준비되지 않은 경우 무시)
+            local success, err = pcall(function()
+                grabbable:FlushInteractableCollider()
+            end)
+            -- 에러는 무시 (초기화 타이밍 문제)
+        end
+    end
+end
+
+---@details 풀 오브젝트 가시성 설정 (SetActive 대신 사용)
+---@param category string 카테고리명
+---@param poolIndex number 풀 인덱스
+---@param visible boolean 가시성 여부
+function SetPoolObjectVisible(category, poolIndex, visible)
+    local obj = poolObjects[category][poolIndex]
+    if not obj then return end
+
+    -- 모든 Grabbable 콜라이더 상태 갱신 (VIVEN SDK 동기화)
+    FlushAllGrabbables()
+
+    -- MeshRenderer 활성화/비활성화
+    local meshRenderers = poolMeshRenderers[category][poolIndex]
+    if meshRenderers then
+        for _, mr in ipairs(meshRenderers) do
+            mr.enabled = visible
+        end
+    end
+
+    -- Collider 활성화/비활성화
+    local colliders = poolColliders[category][poolIndex]
+    if colliders then
+        for _, col in ipairs(colliders) do
+            col.enabled = visible
+        end
+    end
+
+    -- 숨김 위치로 이동 (비활성화 시)
+    if not visible then
+        obj.transform.position = HIDE_POSITION
+    end
 end
 
 ---@details 풀에서 오브젝트 가져오기
@@ -329,7 +431,6 @@ end
 function GetFromPool(category)
     local pool = pools[category]
     if not pool or #pool.available == 0 then
-        Debug.Log("[SpawnManager] No available object in pool: " .. category)
         return nil, nil, -1
     end
 
@@ -349,10 +450,7 @@ end
 ---@param poolIndex number 풀 내 인덱스
 function ReturnToPool(category, poolIndex)
     local pool = pools[category]
-    if not pool then
-        Debug.Log("[SpawnManager] Invalid category: " .. tostring(category))
-        return
-    end
+    if not pool then return end
 
     -- inUse에서 제거
     for i = #pool.inUse, 1, -1 do
@@ -365,7 +463,6 @@ function ReturnToPool(category, poolIndex)
     -- 이미 available에 있는지 확인
     for _, idx in ipairs(pool.available) do
         if idx == poolIndex then
-            Debug.Log("[SpawnManager] Object already in available pool: " .. category .. " index: " .. poolIndex)
             return
         end
     end
@@ -373,48 +470,35 @@ function ReturnToPool(category, poolIndex)
     -- available에 추가
     table.insert(pool.available, poolIndex)
 
-    -- 오브젝트 비활성화 및 위치 복원
+    -- 오브젝트 처리
     local obj = poolObjects[category][poolIndex]
-    local initialPose = poolInitialPose[category][poolIndex]
 
     if obj then
         -- 강제 릴리즈
-        local grabbable = obj:GetComponent("VivenGrabbableModule")
+        local grabbable = poolGrabbables[category][poolIndex]
         if grabbable then
             grabbable:Release()
-            grabbable:FlushInteractableCollider()
-        end
-
-        -- 위치/회전 복원
-        if initialPose then
-            obj.transform.position = initialPose.Pos
-            obj.transform.rotation = initialPose.Rot
         end
 
         -- 비활성화
-        obj:SetActive(false)
+        SetPoolObjectVisible(category, poolIndex, false)
     end
-
-    Debug.Log("[SpawnManager] Returned to pool: " .. category .. " index: " .. poolIndex)
 end
 
 ---@details 모든 오브젝트를 풀로 반환
 function ReturnAllToPool()
     for category, pool in pairs(pools) do
-        -- inUse 복사본 생성 (반복 중 수정 방지)
         local inUseCopy = {}
         for _, index in ipairs(pool.inUse) do
             table.insert(inUseCopy, index)
         end
 
-        -- 모두 반환
         for _, index in ipairs(inUseCopy) do
             ReturnToPool(category, index)
         end
     end
 
     activeTrashItems = {}
-    Debug.Log("[SpawnManager] All objects returned to pool")
 end
 
 --endregion
@@ -424,20 +508,17 @@ end
 ---@details 스폰 설정 초기화
 ---@param settings table 게임 설정
 function InitSpawn(settings)
-    Debug.Log("[SpawnManager] InitSpawn called")
-
     if settings then
         spawnInterval = settings.spawnInterval or 3
         maxTrashCount = settings.maxTrashCount or 5
     end
 
-    -- 스폰 영역 bounds 갱신
     UpdateSpawnBounds()
 
-    -- 기존 활성 쓰레기 모두 풀로 반환
-    ReturnAllToPool()
+    -- VIVEN SDK 완전 초기화 후 Flush 호출 (awake에서는 호출하지 않음)
+    FlushAllGrabbables()
 
-    Debug.Log("[SpawnManager] InitSpawn - Interval: " .. spawnInterval .. "s, MaxCount: " .. maxTrashCount)
+    ReturnAllToPool()
 end
 
 ---@details 스폰 영역 bounds 갱신
@@ -451,17 +532,11 @@ end
 
 ---@details 스폰 시작
 function StartSpawning()
-    Debug.Log("[SpawnManager] StartSpawning called")
-
-    if isSpawning then
-        Debug.Log("[SpawnManager] Already spawning, returning")
-        return
-    end
+    if isSpawning then return end
 
     isSpawning = true
     isPaused = false
 
-    Debug.Log("[SpawnManager] Calling SpawnInitialTrash")
     -- 초기 쓰레기 즉시 스폰
     SpawnInitialTrash()
 
@@ -479,8 +554,6 @@ function StartSpawning()
             end
         end
     end))
-
-    Debug.Log("[SpawnManager] Spawning started")
 end
 
 ---@details 스폰 정지
@@ -492,26 +565,21 @@ function StopSpawning()
         self:StopCoroutine(spawnCoroutine)
         spawnCoroutine = nil
     end
-
-    Debug.Log("[SpawnManager] Spawning stopped")
 end
 
 ---@details 스폰 일시정지
 function PauseSpawning()
     isPaused = true
-    Debug.Log("[SpawnManager] Spawning paused")
 end
 
 ---@details 스폰 재개
 function ResumeSpawning()
     isPaused = false
-    Debug.Log("[SpawnManager] Spawning resumed")
 end
 
 ---@details 모든 쓰레기 제거 (풀로 반환)
 function ClearAllTrash()
     ReturnAllToPool()
-    Debug.Log("[SpawnManager] All trash cleared (returned to pool)")
 end
 
 ---@details 쓰레기가 제거될 때 호출 (TrashItem에서 직접 호출)
@@ -519,7 +587,6 @@ end
 ---@param category string 카테고리
 ---@param poolIndex number 풀 인덱스
 function OnTrashDestroyed(trashObject, category, poolIndex)
-    -- activeTrashItems에서 제거
     for i = #activeTrashItems, 1, -1 do
         if activeTrashItems[i].object == trashObject then
             table.remove(activeTrashItems, i)
@@ -527,7 +594,6 @@ function OnTrashDestroyed(trashObject, category, poolIndex)
         end
     end
 
-    -- 풀로 반환
     if category and poolIndex and poolIndex > 0 then
         ReturnToPool(category, poolIndex)
     end
@@ -540,11 +606,9 @@ end
 ---@details 초기 쓰레기 스폰 (게임 시작 시)
 function SpawnInitialTrash()
     local initialCount = math.min(3, maxTrashCount)
-    Debug.Log("[SpawnManager] SpawnInitialTrash - spawning " .. initialCount .. " items")
 
     for i = 1, initialCount do
-        local success = SpawnRandomTrash()
-        Debug.Log("[SpawnManager] SpawnRandomTrash #" .. i .. " result: " .. tostring(success))
+        SpawnRandomTrash()
     end
 end
 
@@ -560,18 +624,12 @@ end
 ---@details 랜덤 쓰레기 스폰
 ---@return boolean 스폰 성공 여부
 function SpawnRandomTrash()
-    -- 랜덤 카테고리 선택
     local category = GetRandomCategory()
     if not category then
-        Debug.Log("[SpawnManager] SpawnRandomTrash - no category available")
         return false
     end
 
-    Debug.Log("[SpawnManager] SpawnRandomTrash - category: " .. category)
-
-    -- 랜덤 위치 선택 (BoxCollider bounds 내)
     local position = GetRandomSpawnPosition()
-    Debug.Log("[SpawnManager] SpawnRandomTrash - position: " .. tostring(position))
 
     return SpawnTrash(category, position)
 end
@@ -581,11 +639,9 @@ end
 ---@param position Vector3 스폰 위치
 ---@return boolean 스폰 성공 여부
 function SpawnTrash(category, position)
-    -- 풀에서 가져오기
     local trashObject, trashScript, poolIndex = GetFromPool(category)
 
     if not trashObject then
-        Debug.Log("[SpawnManager] Failed to get object from pool: " .. category)
         return false
     end
 
@@ -594,13 +650,7 @@ function SpawnTrash(category, position)
     trashObject.transform.rotation = CS.UnityEngine.Quaternion.identity
 
     -- 활성화
-    trashObject:SetActive(true)
-
-    -- VivenGrabbableModule 콜라이더 갱신 (ReturnToPool에서 Flush했으므로 재갱신 필요)
-    local grabbable = trashObject:GetComponent("VivenGrabbableModule")
-    if grabbable then
-        grabbable:FlushInteractableCollider()
-    end
+    SetPoolObjectVisible(category, poolIndex, true)
 
     -- TrashItem 리셋
     if trashScript then
@@ -610,7 +660,7 @@ function SpawnTrash(category, position)
     -- FloatingBehavior 리셋
     local floatingBehavior = trashObject:GetLuaComponent("FloatingBehavior")
     if floatingBehavior then
-        floatingBehavior.ResetFloating(position, {
+        floatingBehavior:ResetFloating(position, {
             noiseScale = 0.5,
             noiseSpeed = 0.3,
             floatRange = 0.1,
@@ -624,10 +674,6 @@ function SpawnTrash(category, position)
         category = category,
         poolIndex = poolIndex
     })
-
-    -- 이벤트 발생 (EventCallback 제거됨)
-
-    Debug.Log("[SpawnManager] Spawned " .. category .. " at " .. tostring(position) .. " (poolIndex: " .. poolIndex .. ")")
 
     return true
 end
@@ -648,7 +694,6 @@ function GetRandomCategory()
     end
 
     if #availableCategories == 0 then
-        Debug.Log("[SpawnManager] No available categories!")
         return nil
     end
 
@@ -660,12 +705,9 @@ end
 ---@return Vector3
 function GetRandomSpawnPosition()
     if not spawnBoundsMin or not spawnBoundsMax then
-        -- bounds가 없으면 기본 위치 반환
-        Debug.Log("[SpawnManager] Spawn bounds not set, using default position")
         return Vector3(0, 1.5, 1)
     end
 
-    -- bounds 내 랜덤 위치 계산
     local randomX = spawnBoundsMin.x + math.random() * (spawnBoundsMax.x - spawnBoundsMin.x)
     local randomY = spawnBoundsMin.y + math.random() * (spawnBoundsMax.y - spawnBoundsMin.y)
     local randomZ = spawnBoundsMin.z + math.random() * (spawnBoundsMax.z - spawnBoundsMin.z)

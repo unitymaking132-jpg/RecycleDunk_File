@@ -11,9 +11,6 @@ local function checkInject(OBJECT)
 end
 local function NullableInject(OBJECT)
     _INJECTED_ORDER = _INJECTED_ORDER + 1
-    if OBJECT == nil then
-        Debug.Log(_INJECTED_ORDER .. "th object is missing")
-    end
     return OBJECT
 end
 
@@ -82,11 +79,8 @@ end
 function start()
     -- 카테고리 유효성 검사
     if not IsValidCategory(BinCategory) then
-        Debug.LogWarning("[TrashBin] Invalid category: " .. tostring(BinCategory))
         BinCategory = "Misc"
     end
-
-    Debug.Log("[TrashBin] Initialized - Category: " .. BinCategory)
 end
 
 --endregion
@@ -119,8 +113,6 @@ function OnTrashEntered(trashCategory, trashItem)
         -- 3. 오답 이펙트 + 사운드
         PlayWrongEffect()
     end
-
-    Debug.Log("[TrashBin] Trash entered - Category: " .. trashCategory .. ", BinCategory: " .. BinCategory .. ", IsCorrect: " .. tostring(isCorrect))
 
     return isCorrect
 end

@@ -10,9 +10,6 @@ local function checkInject(OBJECT)
 end
 local function NullableInject(OBJECT)
     _INJECTED_ORDER = _INJECTED_ORDER + 1
-    if OBJECT == nil then
-        Debug.Log(_INJECTED_ORDER .. "th object is missing")
-    end
     return OBJECT
 end
 
@@ -31,19 +28,10 @@ local isActive = true
 --region Unity Lifecycle
 
 function awake()
-    -- Collider가 Trigger인지 확인
-    local collider = self:GetComponent(typeof(CS.UnityEngine.Collider))
-    if collider then
-        if not collider.isTrigger then
-            Debug.LogWarning("[BoundaryZone] Collider should be set as Trigger")
-        end
-    else
-        Debug.LogError("[BoundaryZone] No Collider found!")
-    end
+    -- Collider가 Trigger인지 확인 (초기화만)
 end
 
 function start()
-    Debug.Log("[BoundaryZone] Initialized")
 end
 
 --endregion
@@ -86,8 +74,6 @@ function OnTrashExitBoundary(trashItem, trashObject)
 
     -- TrashItem에게 경계 이탈 알림
     trashItem.OnBoundaryExit()
-
-    Debug.Log("[BoundaryZone] Trash lost - Total: " .. lostCount)
 end
 
 --endregion
