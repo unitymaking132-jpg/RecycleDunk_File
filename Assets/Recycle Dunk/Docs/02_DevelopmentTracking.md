@@ -70,12 +70,16 @@
 
 | ID | 태스크 | 우선순위 | 상태 | 담당자 | 비고 |
 |----|-------|---------|------|--------|------|
-| A-001 | BGM 삽입 | 낮음 | 미시작 | - | 배경 음악 |
-| A-002 | 잡기 효과음 | 낮음 | 미시작 | - | Grab SFX |
-| A-003 | 던지기 효과음 | 낮음 | 미시작 | - | Throw SFX |
-| A-004 | 정답 효과음 | 낮음 | 미시작 | - | Correct SFX |
-| A-005 | 오답 효과음 | 낮음 | 미시작 | - | Wrong SFX |
-| A-006 | 게임오버 효과음 | 낮음 | 미시작 | - | GameOver SFX |
+| A-000 | AudioManager.lua 작성 | 중간 | **완료** | - | BGM 랜덤 순환 + SFX 관리 |
+| A-001 | BGM 파일 준비 (4개) | 낮음 | **완료** | - | 랜덤 셔플 재생 지원 |
+| A-002 | 잡기 효과음 | 낮음 | **완료** | - | XR_PICKUP.mp3 |
+| A-003 | 던지기 효과음 | 낮음 | **완료** | - | XR_THROW.mp3 |
+| A-004 | 정답 효과음 | 낮음 | **완료** | - | XR_GOOD.mp3 |
+| A-005 | 오답 효과음 | 낮음 | **완료** | - | XR_MISS.mp3 |
+| A-006 | 게임오버 효과음 | 낮음 | **완료** | - | XR_GAMEOVER.mp3 |
+| A-007 | 결과/완료 효과음 | 낮음 | **완료** | - | XR_FINISH.mp3 |
+| A-008 | UI 전환 효과음 | 낮음 | **완료** | - | XR_TURN PAGE.mp3 |
+| A-009 | AudioManager Unity 연결 | 중간 | 미시작 | - | AudioSource + 클립 연결 필요 |
 | V-001 | 정답 파티클 이펙트 | 낮음 | 미시작 | - | Correct VFX |
 | V-002 | 오답 파티클 이펙트 | 낮음 | 미시작 | - | Wrong VFX |
 | V-003 | 쓰레기 이탈 이펙트 | 낮음 | 미시작 | - | Lost VFX |
@@ -93,6 +97,23 @@
 ---
 
 ## 3. 개발 일지
+
+### 2025-12-12 (세션 5 - AudioManager 구현)
+
+| 시간 | 작업 내용 | 상태 |
+|------|----------|------|
+| - | AudioManager.lua 작성 - BGM/SFX 재생 관리 | 완료 |
+| - | BGM 랜덤 순환 재생 기능 구현 (Fisher-Yates 셔플) | 완료 |
+| - | 곡 종료 시 자동 다음 곡 재생 (같은 곡 연속 방지) | 완료 |
+| - | 오디오 파일 준비 확인 (BGM 4개, SFX 7개) | 완료 |
+| - | 설계문서 - Section 13. Audio 시스템 아키텍처 추가 | 완료 |
+| - | 설계문서 - Section 7.6 AudioManager 공개 메서드 추가 | 완료 |
+| - | 개발현황 문서 업데이트 | 완료 |
+
+**구현 기능**:
+- `StartBGMPlaylist()` / `StopBGMPlaylist()` - BGM 플레이리스트 제어
+- `PlayNextBGM()` - 다음 랜덤 BGM 재생
+- SFX 함수: `PlayPickup()`, `PlayThrow()`, `PlayGood()`, `PlayMiss()`, `PlayGameOver()`, `PlayFinish()`, `PlayUIClick()`
 
 ### 2025-12-12 (세션 4 - Object Pooling 구현)
 

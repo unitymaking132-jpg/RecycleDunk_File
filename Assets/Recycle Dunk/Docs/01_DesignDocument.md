@@ -737,7 +737,7 @@ AudioManager GameObject:
   Components:
     - VivenLuaBehaviour (AudioManager.lua)
     - AudioSource (BGM용)
-      - Loop: true
+      - Loop: false (자동 순환을 위해 false)
       - PlayOnAwake: false
       - Volume: 0.5
     - AudioSource (SFX용)
@@ -746,10 +746,17 @@ AudioManager GameObject:
       - Volume: 1.0
 
 Injection 필드:
+  # AudioSource
   - BGMSource: BGM용 AudioSource 컴포넌트
   - SFXSource: SFX용 AudioSource 컴포넌트
-  - BGM_Main: 메인 게임 BGM 클립
-  - BGM_Menu: 메뉴 BGM 클립 (선택)
+
+  # BGM (4개 - 랜덤 순환 재생)
+  - BGM_1: Exploring the Cosmos.mp3
+  - BGM_2: Starry Drift.mp3
+  - BGM_3: XR_BGM 1.mp3
+  - BGM_4: XR_BGM 2.mp3
+
+  # SFX
   - SFX_Pickup: XR_PICKUP.mp3
   - SFX_Throw: XR_THROW.mp3
   - SFX_Good: XR_GOOD.mp3
@@ -759,7 +766,23 @@ Injection 필드:
   - SFX_UIClick: XR_TURN PAGE.mp3
 ```
 
-### 13.3 사운드 재생 타이밍
+### 13.3 BGM 랜덤 순환 재생 시스템
+
+**동작 방식**:
+1. 게임 시작 시 4개 BGM을 Fisher-Yates 알고리즘으로 셔플
+2. 셔플된 순서대로 BGM 재생
+3. 곡이 끝나면 자동으로 다음 곡 재생 (update()에서 감지)
+4. 모든 곡 재생 완료 시 다시 셔플 (같은 곡 연속 방지)
+
+**주요 함수**:
+| 함수명 | 설명 |
+|--------|------|
+| `StartBGMPlaylist()` | BGM 랜덤 순환 재생 시작 |
+| `StopBGMPlaylist()` | BGM 플레이리스트 정지 |
+| `PlayNextBGM()` | 다음 BGM 재생 |
+| `GetCurrentBGMInfo()` | 현재 재생 중인 BGM 정보 반환 |
+
+### 13.4 사운드 재생 타이밍
 
 | 이벤트 | 효과음 | 호출 위치 |
 |--------|--------|----------|
