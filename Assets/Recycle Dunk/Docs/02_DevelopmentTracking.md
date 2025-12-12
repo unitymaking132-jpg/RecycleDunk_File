@@ -12,11 +12,11 @@
 
 | 카테고리 | 진행률 | 상태 |
 |---------|--------|------|
-| 핵심 시스템 | 83% | 진행중 |
-| UI 시스템 | 75% | **진행중** (스크립트 완료, 플로우 연결 완료) |
+| 핵심 시스템 | 100% | **완료** (AudioManager 추가) |
+| UI 시스템 | 80% | **진행중** (GameHUD 연결 완료, 작동 확인) |
 | 게임 오브젝트 | 36% | 진행중 |
-| 사운드/VFX | 0% | 미시작 |
-| 테스트/버그 수정 | 20% | **진행중** (UI 플로우 테스트 완료) |
+| 사운드/VFX | 50% | **진행중** (AudioManager 완료, 오디오 파일 준비 완료) |
+| 테스트/버그 수정 | 30% | **진행중** (GameHUD 테스트 완료) |
 
 ---
 
@@ -27,25 +27,25 @@
 | ID | 태스크 | 우선순위 | 상태 | 담당자 | 비고 |
 |----|-------|---------|------|--------|------|
 | C-001 | GameManager.lua 작성 | 높음 | **완료** | - | 게임 상태 관리 |
-| C-002 | SpawnManager.lua 작성 | 높음 | **완료** | - | 쓰레기 스폰 로직 |
+| C-002 | SpawnManager.lua 작성 | 높음 | **완료** | - | Object Pooling 방식으로 구현 |
 | C-003 | ScoreManager.lua 작성 | 높음 | **완료** | - | 점수/HP 관리 |
 | C-004 | ~~EventCallback.lua 복사 및 적용~~ | - | **제거됨** | - | 직접 호출 방식으로 대체 |
-| C-005 | AudioManager.lua 작성 | 중간 | 미시작 | - | 사운드 관리 |
+| C-005 | AudioManager.lua 작성 | 중간 | **완료** | - | 사운드 관리 |
 | C-006 | Definitions.def.lua 작성 | 높음 | **완료** | - | 타입 정의 (5개 카테고리 포함) |
 
 ### 2.2 게임 오브젝트 (Game Objects)
 
 | ID | 태스크 | 우선순위 | 상태 | 담당자 | 비고 |
 |----|-------|---------|------|--------|------|
-| O-001 | TrashItem.lua 작성 | 높음 | **완료** | - | 쓰레기 아이템 스크립트 |
+| O-001 | TrashItem.lua 작성 | 높음 | **완료** | - | ResetTrash/ReturnToPool 추가 |
 | O-002 | TrashBin.lua 작성 | 높음 | **완료** | - | 쓰레기통 스크립트 |
 | O-003 | BoundaryZone.lua 작성 | 중간 | **완료** | - | 경계 영역 |
-| O-004 | FloatingBehavior.lua 작성 | 높음 | **완료** | - | Perlin Noise 무중력 |
+| O-004 | FloatingBehavior.lua 작성 | 높음 | **완료** | - | ResetFloating 함수 추가 |
 | O-005 | 쓰레기 프리팹 생성 - Paper | 중간 | 미시작 | - | 종이류 프리팹 |
 | O-006 | 쓰레기 프리팹 생성 - Plastic | 중간 | 미시작 | - | 플라스틱류 프리팹 |
 | O-007 | 쓰레기 프리팹 생성 - Glass | 중간 | 미시작 | - | 유리류 프리팹 |
 | O-008 | 쓰레기 프리팹 생성 - Metal | 중간 | 미시작 | - | 금속류 프리팹 |
-| O-009 | 쓰레기 프리팹 생성 - GeneralGarbage | 중간 | 미시작 | - | 일반 쓰레기 프리팹 |
+| O-009 | 쓰레기 프리팹 생성 - Misc | 중간 | 미시작 | - | 일반 쓰레기 프리팹 |
 | O-010 | 쓰레기통 프리팹 생성 (5종) | 중간 | 미시작 | - | 5가지 카테고리 |
 | O-011 | VObject 컴포넌트 설정 | 높음 | 미시작 | - | 모든 오브젝트 적용 |
 
@@ -60,7 +60,7 @@
 | U-005 | LevelSelectUI.lua 작성 | 중간 | **완료** | - | 레벨 선택 |
 | U-006 | LevelSelectUI 프리팹 생성 | 중간 | 미시작 | - | Easy/Hard 버튼 |
 | U-007 | GameHUD.lua 작성 | 높음 | **완료** | - | 타이머/HP 표시 |
-| U-008 | GameHUD 프리팹 생성 | 높음 | 미시작 | - | 상단 HUD |
+| U-008 | GameHUD 프리팹 연결 및 테스트 | 높음 | **완료** | - | 상단 HUD 작동 확인 |
 | U-009 | GameOverUI.lua 작성 | 높음 | **완료** | - | 게임오버 화면 (HP 0) |
 | U-010 | GameOverUI 프리팹 생성 | 높음 | 미시작 | - | "Game Over" + Retry |
 | U-011 | ResultUIManager.lua 작성 | 높음 | **완료** | - | 결과 화면 (시간 종료) |
@@ -94,6 +94,27 @@
 
 ## 3. 개발 일지
 
+### 2025-12-12 (세션 4 - Object Pooling 구현)
+
+| 시간 | 작업 내용 | 상태 |
+|------|----------|------|
+| - | **아키텍처 결정**: VIVEN SDK 동적 Instantiate 불가 → Object Pooling 패턴 채택 | 완료 |
+| - | FloatingBehavior.lua - ResetFloating() 함수 추가 (풀 재사용 시 상태 초기화) | 완료 |
+| - | TrashItem.lua - poolIndex, currentCategory 변수 추가 | 완료 |
+| - | TrashItem.lua - ResetTrash() 함수 추가 (InitTrash 대체) | 완료 |
+| - | TrashItem.lua - ReturnToPool() 함수 추가 (DestroyTrash 대체) | 완료 |
+| - | TrashItem.lua - SetCategory, SetSpawnManager, SetScoreManager, SetPoolIndex 함수 추가 | 완료 |
+| - | SpawnManager.lua - 전면 재작성 (Instantiate 제거, Pool 기반) | 완료 |
+| - | SpawnManager.lua - GetChildren(), InitializePools(), GetFromPool(), ReturnToPool() 구현 | 완료 |
+| - | Definitions.def.lua - GeneralGarbage → Misc 카테고리명 통일 | 완료 |
+| - | 설계문서 - Section 12. Object Pooling 아키텍처 추가 | 완료 |
+| - | 설계문서 - GeneralGarbage → Misc 업데이트 | 완료 |
+| - | 설계문서 - Section 7.4 SpawnManager 공개 메서드 업데이트 (새 함수 반영) | 완료 |
+
+**결정 사유**: VIVEN SDK는 런타임에서 동적 VObject Instantiate를 지원하지 않음. 씬에 미리 배치된 110개 오브젝트를 풀링 방식으로 재사용.
+
+**풀 구성**: Paper 30개, Plastic 30개, Glass 20개, Metal 20개, Misc 10개 = 총 110개
+
 ### 2025-12-12 (세션 3 - EventCallback 제거 및 아키텍처 단순화)
 
 | 시간 | 작업 내용 | 상태 |
@@ -109,6 +130,7 @@
 | - | ResultUIManager.lua - EventCallback 제거 → GameObject.Find + GetLuaComponent | 완료 |
 | - | SlideUIManager.lua - 미사용 EventCallback import 제거 | 완료 |
 | - | 설계문서 업데이트 - 스크립트 통신 패턴 섹션 전면 개정 | 완료 |
+| - | **GameHUD Unity 연결 및 작동 테스트** | 완료 |
 
 **결정 사유**: EventCallback의 Import Scripts 방식이 각 스크립트별로 별도 인스턴스를 생성하여 이벤트 공유가 안 되는 문제. 직접 호출 방식이 더 단순하고 디버깅이 용이함.
 
@@ -226,6 +248,7 @@
 
 | 버전 | 날짜 | 변경 내용 | 작성자 |
 |------|------|----------|--------|
+| 1.2.0 | 2025-12-12 | Object Pooling 구현, GeneralGarbage→Misc 통일 | Claude |
 | 1.1.0 | 2025-12-12 | EventCallback 제거, 직접 호출 방식으로 전환 | Claude |
 | 1.0.0 | 2025-12-08 | 최초 작성 | Claude |
 
@@ -236,23 +259,32 @@
 ### 완료된 작업
 - [x] GameManager.lua 구현
 - [x] ScoreManager.lua 구현
-- [x] SpawnManager.lua 구현
+- [x] SpawnManager.lua 구현 (Object Pooling 방식)
 - [x] 모든 Object 스크립트 구현
 - [x] 모든 UI 스크립트 구현
 - [x] UI 플로우 연결 (Guide → Landing → LevelSelect → Playing)
 - [x] **EventCallback 전면 제거** - 직접 호출 방식으로 전환 완료
 - [x] GameHUD HP 표시 Slider 방식으로 변경
+- [x] **Object Pooling 구현** - 110개 오브젝트 풀 (Instantiate 불가 대응)
+- [x] GeneralGarbage → Misc 카테고리명 통일
 
 ### 다음 작업 (Unity Editor에서)
-- [ ] 쓰레기 프리팹 생성 및 SpawnManager에 연결
+- [ ] 풀 오브젝트 배치 (TrashPools 계층 구조 생성)
+  - PaperPool: Trash_Paper_01~03 각 10개 = 30개
+  - PlasticPool: Trash_Plastic_01~03 각 10개 = 30개
+  - GlassPool: Trash_Glass_01~02 각 10개 = 20개
+  - MetalPool: Trash_Metal_Can01~02 각 10개 = 20개
+  - MiscPool: Trash_Misc_CrackedEgg 10개 = 10개
+- [ ] SpawnManager에 Pool Parent 연결 (PaperPool, PlasticPool 등)
 - [ ] 쓰레기통 프리팹 생성 및 배치
 - [ ] SpawnZone BoxCollider 설정
-- [ ] GameHUD UI 요소 연결 (타이머, HP Slider, 점수)
+- [x] ~~GameHUD UI 요소 연결 (타이머, HP Slider, 점수)~~ ✅ 완료
 - [ ] GameOverUI, ResultUI 버튼 연결
 - [ ] 실제 게임플레이 테스트 (잡기/던지기/판정)
 
 ### 아키텍처 결정 사항
 - **EventCallback 미사용**: 복잡성 대비 이점 없음, 직접 호출 방식이 더 단순하고 디버깅 용이
+- **Object Pooling 필수**: VIVEN SDK는 동적 VObject Instantiate 미지원, 씬 배치 오브젝트 재사용
 - **통신 패턴**:
   - UI → Manager: `GameObject.Find()` + `GetLuaComponent()`
   - Manager → Manager: Injection + `GetLuaComponent()`

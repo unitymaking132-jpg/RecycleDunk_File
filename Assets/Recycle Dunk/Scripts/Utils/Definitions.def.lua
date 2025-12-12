@@ -25,7 +25,7 @@
 ---| "Plastic"         # 플라스틱 (빨간색)
 ---| "Glass"           # 유리 (초록색)
 ---| "Metal"           # 금속 (노란색)
----| "GeneralGarbage"  # 일반 쓰레기 (회색/검정)
+---| "Misc"            # 일반 쓰레기 (회색/검정)
 
 -------------------------------------------------
 -- 난이도 정의
@@ -147,7 +147,7 @@ CategoryColors = {
     Plastic = { r = 0.8, g = 0.2, b = 0.2 },         -- 빨간색
     Glass = { r = 0.2, g = 0.8, b = 0.3 },           -- 초록색
     Metal = { r = 0.9, g = 0.8, b = 0.2 },           -- 노란색
-    GeneralGarbage = { r = 0.3, g = 0.3, b = 0.3 }   -- 회색
+    Misc = { r = 0.3, g = 0.3, b = 0.3 }              -- 회색
 }
 
 -------------------------------------------------
@@ -160,5 +160,5 @@ CategoryHintMessages = {
     Plastic = "Check if the plastic has recycling marks!",
     Glass = "Glass bottles should be emptied first!",
     Metal = "Cans should be rinsed before recycling!",
-    GeneralGarbage = "Check the types of regular garbage again!"
+    Misc = "Check the types of regular garbage again!"
 }

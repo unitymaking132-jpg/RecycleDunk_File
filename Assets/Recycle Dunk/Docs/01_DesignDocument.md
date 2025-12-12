@@ -78,9 +78,9 @@
 | Plastic (플라스틱) | 빨간색 | 페트병, 플라스틱 용기 |
 | Glass (유리) | 초록색 | 유리병, 유리컵 |
 | Metal (금속) | 노란색 | 캔, 알루미늄 용기 |
-| General Garbage (일반 쓰레기) | 회색/검정 | 음식물 묻은 용기, 복합 재질 |
+| Misc (일반 쓰레기) | 회색/검정 | 음식물 묻은 용기, 복합 재질 |
 
-> **참고**: General Garbage는 재활용이 안 되는 일반 쓰레기로, 별도의 일반 쓰레기통에 버려야 함
+> **참고**: Misc는 재활용이 안 되는 일반 쓰레기로, 별도의 일반 쓰레기통에 버려야 함
 
 ### 3.3 점수 시스템
 
@@ -121,7 +121,7 @@
   - Collider (트리거 감지용)
 
 속성:
-  - trashCategory: string ("Paper" | "Plastic" | "Glass" | "Metal" | "GeneralGarbage")
+  - trashCategory: string ("Paper" | "Plastic" | "Glass" | "Metal" | "Misc")
   - isGrabbed: boolean
   - spawnPosition: Vector3
   - floatOffset: Vector3 (Perlin Noise 오프셋)
@@ -136,7 +136,7 @@
   - Collider (Trigger)
 
 속성:
-  - binCategory: string ("Paper" | "Plastic" | "Glass" | "Metal" | "GeneralGarbage")
+  - binCategory: string ("Paper" | "Plastic" | "Glass" | "Metal" | "Misc")
   - binColor: Color
 ```
 
@@ -299,7 +299,7 @@ HP가 0이 되어 게임이 종료되었을 때 표시되는 UI
 | Plastic | "Check if the plastic has recycling marks!" |
 | Glass | "Glass bottles should be emptied first!" |
 | Metal | "Cans should be rinsed before recycling!" |
-| General Garbage | "Check the types of regular garbage again!" |
+| Misc | "Check the types of regular garbage again!" |
 
 ---
 
@@ -468,14 +468,36 @@ end
 | `InitSpawn(settings)` | GameManager | 스폰 설정 초기화 |
 | `StartSpawning()` | GameManager | 스폰 시작 |
 | `StopSpawning()` | GameManager | 스폰 정지 |
-| `ClearAllTrash()` | GameManager | 모든 쓰레기 제거 |
-| `OnTrashDestroyed(trashObject)` | TrashItem | 쓰레기 제거 알림 |
+| `PauseSpawning()` | GameManager | 스폰 일시정지 |
+| `ResumeSpawning()` | GameManager | 스폰 재개 |
+| `ClearAllTrash()` | GameManager | 모든 쓰레기 풀로 반환 |
+| `OnTrashDestroyed(obj, category, poolIndex)` | TrashItem | 쓰레기 제거 → 풀 반환 |
+| `ReturnAllToPool()` | GameManager | 모든 오브젝트 풀로 반환 |
+| `GetActiveTrashCount()` | 내부 | 활성 쓰레기 수 반환 |
+| `GetPoolStatus()` | 디버그 | 카테고리별 풀 상태 반환 |
 
 ### 7.5 TrashBin 공개 메서드
 
 | 메서드명 | 호출 위치 | 설명 |
 |---------|----------|------|
 | `OnTrashEntered(trashCategory)` | TrashItem | 쓰레기 진입 판정 (boolean 반환) |
+
+### 7.6 AudioManager 공개 메서드
+
+| 메서드명 | 호출 위치 | 설명 |
+|---------|----------|------|
+| `PlayMainBGM()` | GameManager | 메인 게임 BGM 재생 |
+| `PlayMenuBGM()` | GameManager | 메뉴/랜딩 BGM 재생 |
+| `StopBGM()` | GameManager | BGM 정지 |
+| `PauseBGM()` | GameManager | BGM 일시정지 |
+| `ResumeBGM()` | GameManager | BGM 재개 |
+| `PlayPickup()` | TrashItem | 잡기 효과음 재생 |
+| `PlayThrow()` | TrashItem | 던지기 효과음 재생 |
+| `PlayGood()` | ScoreManager | 정답 효과음 재생 |
+| `PlayMiss()` | ScoreManager | 오답 효과음 재생 |
+| `PlayGameOver()` | GameManager | 게임오버 효과음 재생 |
+| `PlayFinish()` | GameManager | 결과/완료 효과음 재생 |
+| `PlayUIClick()` | UI Scripts | UI 클릭/전환 효과음 재생 |
 
 ---
 
@@ -570,6 +592,185 @@ end
 - [ ] 멀티플레이어 협동/대전
 - [ ] 추가 스테이지
 - [ ] 업적 시스템
+
+---
+
+## 12. Object Pooling 아키텍처
+
+### 12.1 개요
+
+VIVEN SDK는 런타임에서 동적 VObject Instantiate를 지원하지 않습니다.
+따라서 쓰레기 오브젝트는 **Object Pooling** 패턴으로 관리합니다.
+
+**핵심 원칙**:
+- 씬에 미리 배치된 오브젝트 재사용
+- `Instantiate()` 대신 `SetActive(true/false)`
+- VObject ID는 씬 배치 시 생성된 고유 ID 유지
+
+### 12.2 풀 구성
+
+| 카테고리 | 프리팹 종류 | 종류 수 | 풀 크기 |
+|---------|------------|--------|--------|
+| Paper | Trash_Paper_01, 02, 03 | 3종 | 30개 |
+| Plastic | Trash_Plastic_01, 02, 03 | 3종 | 30개 |
+| Glass | Trash_Glass_01, 02 | 2종 | 20개 |
+| Metal | Trash_Metal_Can01, Can02 | 2종 | 20개 |
+| Misc | Trash_Misc_CrackedEgg | 1종 | 10개 |
+| **총계** | | **11종** | **110개** |
+
+### 12.3 씬 계층 구조
+
+```
+TrashPools/                    # 빈 GameObject
+├── PaperPool/                 # Paper 풀 부모 (30개)
+│   ├── Trash_Paper_01 x 10개
+│   ├── Trash_Paper_02 x 10개
+│   └── Trash_Paper_03 x 10개
+├── PlasticPool/               # Plastic 풀 부모 (30개)
+│   ├── Trash_Plastic_01 x 10개
+│   ├── Trash_Plastic_02 x 10개
+│   └── Trash_Plastic_03 x 10개
+├── GlassPool/                 # Glass 풀 부모 (20개)
+│   ├── Trash_Glass_01 x 10개
+│   └── Trash_Glass_02 x 10개
+├── MetalPool/                 # Metal 풀 부모 (20개)
+│   ├── Trash_Metal_Can01 x 10개
+│   └── Trash_Metal_Can02 x 10개
+└── MiscPool/                  # Misc 풀 부모 (10개)
+    └── Trash_Misc_CrackedEgg x 10개
+```
+
+### 12.4 풀링 흐름도
+
+```
+[게임 시작]
+    ↓
+[awake] InitializePools()
+    ├── GetChildren()로 자식 오브젝트 수집
+    ├── poolObjects, poolScripts에 캐싱
+    ├── poolInitialPose에 초기 위치/회전 저장
+    ├── TrashItem에 매니저 참조 설정
+    └── 모든 오브젝트 비활성화
+    ↓
+[스폰 요청] SpawnTrash(category, position)
+    ├── GetFromPool(category)
+    │   ├── available[1] → inUse로 이동
+    │   └── 오브젝트, 스크립트, 인덱스 반환
+    ├── 위치 설정 + SetActive(true)
+    ├── ResetTrash(category, position, poolIndex)
+    └── ResetFloating(position, settings)
+    ↓
+[판정/이탈] ReturnToPool()
+    ├── grabbable:Release()
+    ├── grabbable:FlushInteractableCollider()
+    ├── SpawnManager.OnTrashDestroyed()
+    │   └── ReturnToPool(category, poolIndex)
+    │       ├── inUse → available로 이동
+    │       ├── 위치/회전 복원
+    │       └── SetActive(false)
+    └── 재사용 대기
+```
+
+### 12.5 핵심 함수
+
+#### SpawnManager.lua
+
+| 함수 | 설명 |
+|------|------|
+| `GetChildren(parent, objTable, scriptTable, scriptName)` | 자식 오브젝트 수집 |
+| `InitializePools()` | 모든 풀 초기화 (awake에서 호출) |
+| `InitializePool(category, poolParent)` | 단일 풀 초기화 + 초기 위치 저장 |
+| `GetFromPool(category)` | available → inUse 이동, 오브젝트 반환 |
+| `ReturnToPool(category, poolIndex)` | inUse → available 이동, 위치 복원, 비활성화 |
+| `ReturnAllToPool()` | 모든 오브젝트 풀로 반환 |
+
+#### TrashItem.lua
+
+| 함수 | 설명 |
+|------|------|
+| `ResetTrash(category, position, index)` | 풀에서 활성화 시 상태 초기화 |
+| `ReturnToPool()` | 판정/이탈 시 풀로 반환 |
+| `SetCategory(category)` | 카테고리 설정 |
+| `SetPoolIndex(index)` | 풀 인덱스 설정 |
+
+#### FloatingBehavior.lua
+
+| 함수 | 설명 |
+|------|------|
+| `ResetFloating(position, settings)` | 떠다니기 상태 완전 초기화 |
+
+### 12.6 주의사항
+
+1. **VObject ID 보존**: 씬에 배치 시 자동 생성된 고유 ID 유지 (재생성 안 함)
+2. **Grabbable 상태**: ReturnToPool 시 반드시 `Release()` + `FlushInteractableCollider()` 호출
+3. **위치 복원**: 풀 초기화 시 저장한 position/rotation으로 복원
+4. **카테고리 통일**: 모든 코드에서 `Misc` 사용 (`GeneralGarbage` 제거됨)
+
+---
+
+## 13. Audio 시스템 아키텍처
+
+### 13.1 오디오 파일 구조
+
+```
+Assets/Recycle Dunk/Audio/
+├── BGM/                              # 배경 음악
+│   ├── Exploring the Cosmos.mp3      # 메인 BGM 옵션 1
+│   ├── Starry Drift.mp3              # 메인 BGM 옵션 2
+│   ├── XR_BGM 1.mp3                  # 게임 BGM 옵션 1
+│   └── XR_BGM 2.mp3                  # 게임 BGM 옵션 2
+│
+└── SFX/                              # 효과음
+    ├── XR_PICKUP.mp3                 # 잡기 효과음
+    ├── XR_THROW.mp3                  # 던지기 효과음
+    ├── XR_GOOD.mp3                   # 정답 효과음
+    ├── XR_MISS.mp3                   # 오답 효과음
+    ├── XR_GAMEOVER.mp3               # 게임오버 효과음
+    ├── XR_FINISH.mp3                 # 결과/완료 효과음
+    └── XR_TURN PAGE.mp3              # UI 전환 효과음
+```
+
+### 13.2 AudioManager Unity 설정
+
+```yaml
+AudioManager GameObject:
+  Components:
+    - VivenLuaBehaviour (AudioManager.lua)
+    - AudioSource (BGM용)
+      - Loop: true
+      - PlayOnAwake: false
+      - Volume: 0.5
+    - AudioSource (SFX용)
+      - Loop: false
+      - PlayOnAwake: false
+      - Volume: 1.0
+
+Injection 필드:
+  - BGMSource: BGM용 AudioSource 컴포넌트
+  - SFXSource: SFX용 AudioSource 컴포넌트
+  - BGM_Main: 메인 게임 BGM 클립
+  - BGM_Menu: 메뉴 BGM 클립 (선택)
+  - SFX_Pickup: XR_PICKUP.mp3
+  - SFX_Throw: XR_THROW.mp3
+  - SFX_Good: XR_GOOD.mp3
+  - SFX_Miss: XR_MISS.mp3
+  - SFX_GameOver: XR_GAMEOVER.mp3
+  - SFX_Finish: XR_FINISH.mp3
+  - SFX_UIClick: XR_TURN PAGE.mp3
+```
+
+### 13.3 사운드 재생 타이밍
+
+| 이벤트 | 효과음 | 호출 위치 |
+|--------|--------|----------|
+| 게임 시작 | BGM 재생 | GameManager.StartGame() |
+| 쓰레기 잡기 | PlayPickup() | TrashItem.onGrab() |
+| 쓰레기 던지기 | PlayThrow() | TrashItem.onRelease() |
+| 올바른 분류 | PlayGood() | ScoreManager.OnCorrectAnswer() |
+| 잘못된 분류 | PlayMiss() | ScoreManager.OnWrongAnswer() |
+| HP 0 게임오버 | PlayGameOver() | GameManager.OnGameOver() |
+| 시간 종료 | PlayFinish() | GameManager.OnTimeUp() |
+| UI 버튼 클릭 | PlayUIClick() | 각 UI 버튼 핸들러 |
 
 ---
 
