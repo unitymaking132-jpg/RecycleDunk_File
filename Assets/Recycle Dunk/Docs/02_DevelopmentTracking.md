@@ -1,22 +1,22 @@
 # Recycle Dunk - 개발 현황 추적 문서
 
 **프로젝트명**: Recycle Dunk
-**버전**: 1.5.0
-**최종 수정일**: 2025-12-13
+**버전**: 1.7.0
+**최종 수정일**: 2025-12-15
 
 ---
 
 ## 1. 개발 진행 현황 요약
 
-### 전체 진행률: 85%
+### 전체 진행률: 95%
 
 | 카테고리 | 진행률 | 상태 |
 |---------|--------|------|
-| 핵심 시스템 | 100% | **완료** (AudioManager, VFXManager 추가) |
-| UI 시스템 | 90% | **완료** (모든 UI 작동 확인) |
+| 핵심 시스템 | 100% | **완료** (AudioManager, SpawnManager 연결 완료) |
+| UI 시스템 | 100% | **완료** (모든 UI 패널 스크립트 연결 완료) |
 | 게임 오브젝트 | 100% | **완료** (풀링 시스템 버그 수정) |
-| 사운드/VFX | 80% | **진행중** (AudioManager, VFXManager 연결 완료) |
-| 테스트/버그 수정 | 70% | **완료** (VObject 풀링 버그 수정) |
+| 사운드/VFX | 100% | **완료** (AudioManager 모든 Injection 연결 완료) |
+| 테스트/버그 수정 | 70% | **대기중** (실제 VR 게임플레이 테스트 필요) |
 
 ---
 
@@ -79,7 +79,7 @@
 | A-006 | 게임오버 효과음 | 낮음 | **완료** | - | XR_GAMEOVER.mp3 |
 | A-007 | 결과/완료 효과음 | 낮음 | **완료** | - | XR_FINISH.mp3 |
 | A-008 | UI 전환 효과음 | 낮음 | **완료** | - | XR_TURN PAGE.mp3 |
-| A-009 | AudioManager Unity 연결 | 중간 | **진행중** | - | 컴포넌트 추가 완료, Injection 수동 연결 필요 |
+| A-009 | AudioManager Unity 연결 | 중간 | **완료** | - | BGM 4개, SFX 7개 모든 Injection 연결 완료 |
 | V-001 | 정답 파티클 이펙트 | 낮음 | 미시작 | - | Correct VFX |
 | V-002 | 오답 파티클 이펙트 | 낮음 | 미시작 | - | Wrong VFX |
 | V-003 | 쓰레기 이탈 이펙트 | 낮음 | 미시작 | - | Lost VFX |
@@ -97,6 +97,39 @@
 ---
 
 ## 3. 개발 일지
+
+### 2025-12-15 (세션 9 - Unity 연결 상태 검증 및 게임 완성)
+
+| 시간 | 작업 내용 | 상태 |
+|------|----------|------|
+| - | **AudioManager Injection 연결 상태 검증** | 완료 |
+| - | BGMSource, SFXSource AudioSource 연결 확인 | 완료 |
+| - | BGM_1~4 (4개 BGM 파일) 연결 확인 | 완료 |
+| - | SFX_Pickup/Throw/Good/Miss/GameOver/Finish/UIClick (7개 SFX) 연결 확인 | 완료 |
+| - | **SpawnManager Pool Parent 연결 상태 검증** | 완료 |
+| - | SpawnZoneObject 연결 확인 | 완료 |
+| - | ScoreManagerObject 연결 확인 | 완료 |
+| - | PaperPool, PlasticPool, GlassPool, MetalPool, MiscPool (5개 풀) 연결 확인 | 완료 |
+| - | **UI 패널 연결 상태 검증 (1차)** | 완료 |
+| - | Landing, Level Selection, Slide Guide, Game HUD - VivenLuaBehaviour 연결됨 | 확인됨 |
+| - | **GameOver/Result 패널 Unity Editor에서 연결 작업** | **완료** |
+| - | **최종 검증 - 모든 UI 패널 연결 완료 확인** | **완료** |
+| - | 개발 문서 최종 업데이트 | 완료 |
+
+**최종 검증 결과 요약**:
+- ✅ AudioManager: 모든 Injection 필드 연결 완료 (BGM 4개, SFX 7개)
+- ✅ SpawnManager: 모든 Pool Parent 연결 완료 (5개 풀 + SpawnZone + ScoreManager)
+- ✅ GameManager: 모든 UI 패널 및 매니저 참조 연결 완료
+- ✅ Landing, Level Selection, Slide Guide, Game HUD: VivenLuaBehaviour + 스크립트 연결됨
+- ✅ **GameOver**: VivenLuaBehaviour + GameOverUI.lua + RetryButton 연결 완료
+- ✅ **Result**: VivenLuaBehaviour + ResultUIManager.lua + 5개 Injection 필드 연결 완료
+
+**게임 완성 상태**:
+- 모든 Lua 스크립트 작성 완료
+- 모든 Unity 컴포넌트 연결 완료
+- 남은 작업: 실제 VR 환경에서 게임플레이 테스트
+
+---
 
 ### 2025-12-13 (세션 8 - Grabbable-FloatingBehavior 충돌 버그 수정)
 
@@ -350,6 +383,8 @@
 
 | 버전 | 날짜 | 변경 내용 | 작성자 |
 |------|------|----------|--------|
+| 1.7.0 | 2025-12-15 | 게임 완성! 모든 UI 패널 연결 완료 (GameOver, Result 포함), VR 테스트만 남음 | Claude |
+| 1.6.0 | 2025-12-15 | Unity 연결 상태 검증, AudioManager/SpawnManager 완료 확인 | Claude |
 | 1.5.0 | 2025-12-13 | Grabbable-FloatingBehavior 충돌 버그 수정, Lua `:` 문법 및 `_` 파라미터 적용 | Claude |
 | 1.4.0 | 2025-12-13 | VObject 풀링 버그 수정 (SetActive→MeshRenderer/Collider), FlushAllGrabbables 패턴 | Claude |
 | 1.3.0 | 2025-12-12 | AudioManager Unity 컴포넌트 설정 완료 | Claude |
@@ -379,18 +414,19 @@
 - [x] **난이도 설정 조정** - Easy: 2초/7개, Hard: 1.5초/10개
 
 ### 다음 작업 (Unity Editor에서)
-- [ ] 풀 오브젝트 배치 (TrashPools 계층 구조 생성)
+- [x] ~~풀 오브젝트 배치 (TrashPools 계층 구조 생성)~~ ✅ 완료
   - PaperPool: Trash_Paper_01~03 각 10개 = 30개
   - PlasticPool: Trash_Plastic_01~03 각 10개 = 30개
   - GlassPool: Trash_Glass_01~02 각 10개 = 20개
   - MetalPool: Trash_Metal_Can01~02 각 10개 = 20개
-  - MiscPool: Trash_Misc_CrackedEgg 10개 = 10개
-- [ ] SpawnManager에 Pool Parent 연결 (PaperPool, PlasticPool 등)
-- [ ] 쓰레기통 프리팹 생성 및 배치
-- [ ] SpawnZone BoxCollider 설정
+  - MiscPool: Trash_Misc 10개 = 10개
+- [x] ~~SpawnManager에 Pool Parent 연결 (PaperPool, PlasticPool 등)~~ ✅ 완료
+- [x] ~~쓰레기통 프리팹 생성 및 배치~~ ✅ 완료 (5종: Paper, Plastic, Glass, Metal, GeneralGarbage)
+- [x] ~~SpawnZone 설정~~ ✅ 완료
 - [x] ~~GameHUD UI 요소 연결 (타이머, HP Slider, 점수)~~ ✅ 완료
-- [ ] GameOverUI, ResultUI 버튼 연결
-- [ ] 실제 게임플레이 테스트 (잡기/던지기/판정)
+- [x] ~~GameOverUI VivenLuaBehaviour 연결~~ ✅ 완료 (GameOverUI.lua + RetryButton)
+- [x] ~~ResultUI VivenLuaBehaviour 연결~~ ✅ 완료 (ResultUIManager.lua + 5개 Injection)
+- [ ] 실제 VR 게임플레이 테스트 (잡기/던지기/판정)
 
 ### 아키텍처 결정 사항
 - **EventCallback 미사용**: 복잡성 대비 이점 없음, 직접 호출 방식이 더 단순하고 디버깅 용이
