@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: VivenMap
   m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
   m_GroupName: VivenMap
-  m_GUID: e958f55783dcf2e4f82009da089f696d
+  m_GUID: 113c4402ffcdaa64da1ec7d4144ed97a
   m_SerializeEntries:
   - m_GUID: df593a320500c864b944dbe6d9028b42
     m_Address: vmap
